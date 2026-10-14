@@ -1,0 +1,226 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "منتجات متجر فلورا فاتن من الورود والهدايا والبالونات",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "stock": { "type": "number" },
+        "featured": { "type": "boolean" },
+        "flowerType": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewsCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "price", "category", "image"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "تصنيفات المتجر",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "image": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "slug"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "طلبات العملاء وتفاصيل التوصيل والإهداء",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string" },
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "recipientName": { "type": "string" },
+        "deliveryCity": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "deliveryDate": { "type": "string" },
+        "deliveryTimeSlot": { "type": "string" },
+        "giftCardMessage": { "type": "string" },
+        "giftSenderName": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["customerName", "customerPhone", "deliveryCity", "total", "status"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "إعدادات المتجر العامة والتوصيل والهوية",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string" },
+        "tagline": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "deliveryFeeDefault": { "type": "number" },
+        "freeDeliveryThreshold": { "type": "number" },
+        "minOrderAmount": { "type": "number" },
+        "logoUrl": { "type": "string" },
+        "logoStoragePath": { "type": "string" },
+        "announcementText": { "type": "string" },
+        "announcementActive": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["storeName"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "كوبونات التخفيض",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "discountType": { "type": "string" },
+        "discountValue": { "type": "number" },
+        "minOrderAmount": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["code", "discountType", "discountValue"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "ملف المستخدم وصلاحياته (مالك، مدير، عميل، مسوق)",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "AffiliateProfile": {
+      "title": "AffiliateProfile",
+      "description": "بيانات المسوق بالعمولة وصانع المحتوى ونسب أرباحه وحسابه البنكي",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string" },
+        "referralCode": { "type": "string" },
+        "commissionType": { "type": "string" },
+        "commissionValue": { "type": "number" },
+        "customerDiscountPercent": { "type": "number" },
+        "totalClicks": { "type": "number" },
+        "totalOrders": { "type": "number" },
+        "totalSales": { "type": "number" },
+        "totalEarnings": { "type": "number" },
+        "paidEarnings": { "type": "number" },
+        "pendingBalance": { "type": "number" },
+        "bankName": { "type": "string" },
+        "accountHolder": { "type": "string" },
+        "iban": { "type": "string" },
+        "socialChannels": { "type": "string" },
+        "appliedAt": { "type": "string" }
+      },
+      "required": ["userId", "name", "email", "status", "referralCode"]
+    },
+    "PayoutRequest": {
+      "title": "PayoutRequest",
+      "description": "طلبات سحب أرباح المسوقين وصناع المحتوى",
+      "type": "object",
+      "properties": {
+        "affiliateId": { "type": "string" },
+        "affiliateName": { "type": "string" },
+        "amount": { "type": "number" },
+        "bankName": { "type": "string" },
+        "iban": { "type": "string" },
+        "status": { "type": "string" },
+        "requestedAt": { "type": "string" },
+        "transactionReference": { "type": "string" }
+      },
+      "required": ["affiliateId", "amount", "status"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "بنرات الصفحة الرئيسية والعروض الترويجية",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "link": { "type": "string" },
+        "active": { "type": "boolean" },
+        "order": { "type": "number" }
+      },
+      "required": ["title", "imageUrl"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "تقييمات وآراء العملاء على المنتجات",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["productId", "userName", "rating", "comment"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "قائمة المنتجات والتفاصيل والأسعار"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "تصنيفات المتجر"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "طلبات الشراء وتتبع الشحنات"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "تقييمات وآراء العملاء على المنتجات"
+    },
+    "/storeSettings/{settingId}": {
+      "schema": "StoreSettings",
+      "description": "إعدادات المتجر العامة"
+    },
+    "/coupons/{couponId}": {
+      "schema": "Coupon",
+      "description": "كوبونات الخصم"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "بيانات المستخدمين والأدوار"
+    },
+    "/affiliates/{affiliateId}": {
+      "schema": "AffiliateProfile",
+      "description": "حسابات المسوقين بالعمولة وصناع المحتوى"
+    },
+    "/payouts/{payoutId}": {
+      "schema": "PayoutRequest",
+      "description": "طلبات سحب العمولات والأرباح"
+    },
+    "/banners/{bannerId}": {
+      "schema": "Banner",
+      "description": "بنرات المتجر"
+    }
+  }
+}

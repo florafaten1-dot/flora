@@ -1,0 +1,6 @@
+{
+  "name": "Flora Faten | فلورا فاتن",
+  "description": "متجر Flora Faten الفاخر للورود الطبيعية والصناعية والبالونات والهدايا وتنسيقات المناسبات مع لوحة تحكم إدارية متكاملة وقاعدة بيانات مركزية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
