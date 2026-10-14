@@ -145,7 +145,7 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FFFDFD] text-[#2D141E]">
+    <div className="min-h-screen flex flex-col justify-between bg-[#FFFDFD] text-[#2D141E] w-full max-w-full overflow-x-hidden">
       
       {/* Top Navbar */}
       <Navbar
@@ -159,17 +159,18 @@ const MainAppContent: React.FC = () => {
 
       {/* Floating Referral Welcome Banner */}
       {activeReferralCode && showReferralBanner && (
-        <div className="bg-gradient-to-r from-[#FFF0F4] via-[#FFE6ED] to-[#FFF0F4] border-b border-[#F8DDE6] px-4 py-2.5 text-xs text-[#AD647D] flex items-center justify-between shadow-2xs animate-fadeIn">
-          <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#C9A46A] animate-pulse" />
-              <span>
-                أهلاً بك في Flora Faten! أنت تتسوق عبر ترشيح شريكنا (<strong className="font-mono text-[#2D141E]">{activeReferralCode}</strong>) — يتم احتساب الخصم والعمولة تلقائياً عند طلبك 🌸
+        <div className="bg-gradient-to-r from-[#FFF0F4] via-[#FFE6ED] to-[#FFF0F4] border-b border-[#F8DDE6] px-3 sm:px-4 py-2 sm:py-2.5 text-xs text-[#AD647D] flex items-center justify-between shadow-2xs animate-fadeIn w-full max-w-full">
+          <div className="max-w-7xl mx-auto flex items-center justify-between w-full gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="w-4 h-4 text-[#C9A46A] animate-pulse shrink-0" />
+              <span className="text-[11px] sm:text-xs leading-relaxed truncate sm:whitespace-normal">
+                أهلاً بك في Flora Faten! أنت تتسوق عبر ترشيح شريكنا (<strong className="font-mono text-[#2D141E]">{activeReferralCode}</strong>) — يتم احتساب الخصم والعمولة تلقائياً 🌸
               </span>
             </div>
             <button
               onClick={() => setShowReferralBanner(false)}
-              className="text-gray-400 hover:text-gray-600 p-1"
+              className="text-gray-400 hover:text-gray-600 p-1 shrink-0"
+              aria-label="إغلاق"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -178,7 +179,7 @@ const MainAppContent: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-12">
+      <main className="flex-1 pb-12 w-full max-w-full overflow-x-hidden">
         {loadingData ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4 text-center">
             <div className="w-14 h-14 rounded-full bg-[#FFF0F4] border-2 border-[#E7A0B4] flex items-center justify-center animate-spin">

@@ -127,6 +127,38 @@ export interface CityOption {
   active: boolean;
 }
 
+export type AnnouncementIconType = 'sparkles' | 'gift' | 'tag' | 'truck' | 'heart' | 'bell' | 'phone';
+export type AnnouncementLinkType = 'none' | 'category' | 'product' | 'coupon' | 'page' | 'custom';
+export type AnnouncementMode = 'marquee' | 'slideshow' | 'static';
+export type AnnouncementSpeed = 'slow' | 'normal' | 'fast';
+
+export interface AnnouncementItem {
+  id: string;
+  text: string;
+  badge?: string;
+  icon?: AnnouncementIconType;
+  linkType?: AnnouncementLinkType;
+  linkValue?: string;
+  linkText?: string;
+  isActive: boolean;
+}
+
+export interface AnnouncementSettings {
+  enabled: boolean;
+  mode: AnnouncementMode;
+  speed: AnnouncementSpeed;
+  durationSeconds: number; // For slideshow mode
+  direction: 'rtl' | 'ltr';
+  pauseOnHover: boolean;
+  closable: boolean;
+  showIcon: boolean;
+  bgColorStart: string;
+  bgColorEnd: string;
+  textColor: string;
+  accentColor: string;
+  messages: AnnouncementItem[];
+}
+
 export interface StoreSettings {
   storeName: string;
   storeNameEn: string;
@@ -143,6 +175,7 @@ export interface StoreSettings {
   logoStoragePath?: string;
   announcementText: string;
   announcementActive: boolean;
+  announcementSettings?: AnnouncementSettings;
   cities: CityOption[];
   updatedAt: string;
 }

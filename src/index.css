@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 @layer base {
   :root {
     --color-pink-soft: #F8DDE6;
@@ -11,12 +17,31 @@
   html {
     scroll-behavior: smooth;
     font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    -webkit-text-size-adjust: 100%;
   }
   
   body {
     font-family: 'Cairo', system-ui, -apple-system, sans-serif;
     color: #2D1A22;
     background-color: #FFFDFD;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    position: relative;
   }
 }
 
@@ -52,3 +77,58 @@
     display: block !important;
   }
 }
+
+/* Announcement Bar Marquee Animations */
+@keyframes marquee-scroll-rtl {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-scroll-ltr {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.announcement-marquee-rtl {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee-scroll-rtl var(--marquee-duration, 25s) linear infinite;
+}
+
+.announcement-marquee-ltr {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee-scroll-ltr var(--marquee-duration, 25s) linear infinite;
+}
+
+.announcement-pause-hover:hover,
+.announcement-pause-hover:focus-within {
+  animation-play-state: paused !important;
+}
+
+.announcement-marquee-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  contain: paint;
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-marquee-rtl,
+  .announcement-marquee-ltr {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

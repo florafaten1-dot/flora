@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { BrandLogo } from '../common/BrandLogo';
+import { AnnouncementBar } from './AnnouncementBar';
 
 interface NavbarProps {
   currentTab: string;
@@ -64,24 +65,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#F8DDE6] shadow-xs">
-      {/* Top Announcement Bar */}
-      {settings.announcementActive && (
-        <div className="bg-gradient-to-r from-[#AD647D] via-[#E7A0B4] to-[#AD647D] text-white text-xs py-2 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#FFE680]" />
-          <span>{settings.announcementText}</span>
-          <span className="hidden md:inline-block opacity-75 mr-2">| هاتف المتجر: {settings.phone}</span>
-        </div>
-      )}
+      {/* Top Promotional Announcement Bar */}
+      <AnnouncementBar 
+        onNavigate={setCurrentTab}
+        onSelectProduct={onSelectProduct}
+      />
 
       {/* Main Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 w-full max-w-full">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4 w-full min-w-0">
           
           {/* Mobile menu trigger */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-[#AD647D] hover:bg-[#F8DDE6]/40 transition"
-            aria-label="القائمة"
+            className="md:hidden p-2 rounded-xl text-[#AD647D] hover:bg-[#F8DDE6]/40 transition shrink-0"
+            aria-label="القائمة الرئيسية"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -89,9 +87,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Brand Identity */}
           <div 
             onClick={() => { setCurrentTab('home'); }} 
-            className="cursor-pointer group select-none"
+            className="cursor-pointer group select-none min-w-0 shrink"
           >
-            <BrandLogo />
+            <BrandLogo textSize="xl" imageClassName="w-9 h-9 sm:w-11 sm:h-11" />
           </div>
 
           {/* Desktop Search Bar */}
@@ -166,35 +164,35 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Search Trigger for Mobile */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Search Trigger for Mobile & Tablet */}
             <button
               onClick={() => setShowSearchModal(true)}
-              className="lg:hidden p-2.5 rounded-full text-[#AD647D] hover:bg-[#F8DDE6]/40 transition"
-              aria-label="بحث"
+              className="lg:hidden p-2 sm:p-2.5 rounded-full text-[#AD647D] hover:bg-[#F8DDE6]/40 transition"
+              aria-label="بحث في المنتجات"
             >
               <Search className="w-5 h-5" />
             </button>
 
-            {/* Tracking shortcut */}
+            {/* Tracking shortcut - Desktop only */}
             <button
               onClick={() => setCurrentTab('tracking')}
               title="تتبع طلبك"
-              className={`p-2.5 rounded-full transition flex items-center gap-1.5 text-xs font-medium ${
+              className={`hidden md:flex p-2.5 rounded-full transition items-center gap-1.5 text-xs font-medium ${
                 currentTab === 'tracking'
                   ? 'bg-[#AD647D] text-white shadow-xs'
                   : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'
               }`}
             >
-              <Compass className="w-5 h-5" />
-              <span className="hidden sm:inline">تتبع الطلب</span>
+              <Compass className="w-4 h-4" />
+              <span>تتبع الطلب</span>
             </button>
 
-            {/* Wishlist */}
+            {/* Wishlist - Desktop/Tablet */}
             <button
               onClick={() => setCurrentTab('wishlist')}
               title="قائمة الرغبات"
-              className={`relative p-2.5 rounded-full transition ${
+              className={`hidden sm:flex relative p-2 sm:p-2.5 rounded-full transition ${
                 currentTab === 'wishlist'
                   ? 'bg-[#AD647D] text-white'
                   : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'
@@ -202,31 +200,32 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Heart className="w-5 h-5" />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#C9A46A] text-white rounded-full text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#C9A46A] text-white rounded-full text-[9px] font-bold flex items-center justify-center border-2 border-white">
                   {wishlist.length}
                 </span>
               )}
             </button>
 
-            {/* Cart Button */}
+            {/* Cart Button - Always visible & prominent */}
             <button
               onClick={onOpenCart}
-              className="relative bg-gradient-to-r from-[#E7A0B4] to-[#AD647D] text-white px-3.5 py-2 rounded-full flex items-center gap-2 shadow-xs hover:shadow-md transition active:scale-95"
+              className="relative bg-gradient-to-r from-[#E7A0B4] to-[#AD647D] text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full flex items-center gap-1.5 sm:gap-2 shadow-xs hover:shadow-md transition active:scale-95 shrink-0"
+              aria-label="سلة المشتريات"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span className="text-xs font-bold hidden sm:inline">السلة</span>
+              <span className="text-xs font-bold hidden md:inline">السلة</span>
               {cartTotalCount > 0 && (
-                <span className="bg-white text-[#AD647D] text-[11px] font-black rounded-full px-1.5 py-0.2 min-w-4 text-center">
+                <span className="bg-white text-[#AD647D] text-[10px] sm:text-[11px] font-black rounded-full px-1.5 py-0.2 min-w-4 text-center">
                   {cartTotalCount}
                 </span>
               )}
             </button>
 
-            {/* Affiliate Portal Button (if approved affiliate) */}
+            {/* Affiliate Portal Button - Desktop only */}
             {isAffiliate && (
               <button
                 onClick={() => setCurrentTab('affiliate')}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition ${
+                className={`hidden md:flex px-3 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition ${
                   currentTab === 'affiliate'
                     ? 'bg-[#AD647D] text-white border-[#AD647D] shadow-xs'
                     : 'bg-[#FFF0F4] text-[#AD647D] border-[#F8DDE6] hover:bg-[#AD647D] hover:text-white'
@@ -234,15 +233,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="بوابة المسوق وصانع المحتوى"
               >
                 <Share2 className="w-3.5 h-3.5 text-[#C9A46A]" />
-                <span className="hidden sm:inline">بوابة المسوق</span>
+                <span>بوابة المسوق</span>
               </button>
             )}
 
-            {/* Admin Dashboard Badge / Button */}
+            {/* Admin Dashboard Badge / Button - Desktop only */}
             {isStaff ? (
               <button
                 onClick={() => setCurrentTab('admin')}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition ${
+                className={`hidden md:flex px-3 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition ${
                   currentTab === 'admin'
                     ? 'bg-[#C9A46A] text-white border-[#C9A46A] shadow-xs'
                     : 'bg-[#FFF8E7] text-[#9A7432] border-[#C9A46A] hover:bg-[#C9A46A] hover:text-white'
@@ -253,11 +252,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             ) : null}
 
-            {/* User Account Button */}
+            {/* User Account Button - Desktop only */}
             <button
               onClick={() => setCurrentTab('account')}
               title="حسابي"
-              className={`p-2.5 rounded-full transition ${
+              className={`hidden md:flex p-2.5 rounded-full transition ${
                 currentTab === 'account'
                   ? 'bg-[#AD647D] text-white'
                   : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'

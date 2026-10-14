@@ -22,54 +22,54 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const { settings, categories } = useStore();
 
   return (
-    <footer className="bg-gradient-to-b from-[#FFF9FA] to-[#FFF0F4] border-t border-[#F8DDE6] text-[#4A2030] pt-16 pb-12 mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="bg-gradient-to-b from-[#FFF9FA] to-[#FFF0F4] border-t border-[#F8DDE6] text-[#4A2030] pt-12 sm:pt-16 pb-12 mt-16 sm:mt-20 w-full max-w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
-        {/* Value Badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pb-12 border-b border-[#F8DDE6]">
-          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs">
-            <div className="w-12 h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
-              <Truck className="w-6 h-6 text-[#AD647D]" />
+        {/* Value Badges - responsive 1 col mobile, 2 sm, 4 lg */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pb-8 sm:pb-12 border-b border-[#F8DDE6]">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
+              <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[#AD647D]" />
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#2D141E]">توصيل واستلام خلال 2 - 5 أيام</h4>
-              <p className="text-[11px] text-[#AD647D]/80">تجهيز فاخر ودقيق داخل مكة المكرمة وضواحيها</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs">
-            <div className="w-12 h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
-              <Flower2 className="w-6 h-6 text-[#AD647D]" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#2D141E]">ورود طبيعية قطف يومي</h4>
-              <p className="text-[11px] text-[#AD647D]/80">أجود أنواع الزهور الهولندية الفاخرة</p>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-[#2D141E] truncate">توصيل واستلام خلال 2 - 5 أيام</h4>
+              <p className="text-[10px] sm:text-[11px] text-[#AD647D]/80 leading-relaxed">تجهيز فاخر ودقيق داخل مكة وضواحيها</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs">
-            <div className="w-12 h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
-              <Heart className="w-6 h-6 text-[#AD647D]" />
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
+              <Flower2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#AD647D]" />
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#2D141E]">كرت إهداء مجاني</h4>
-              <p className="text-[11px] text-[#AD647D]/80">مع طباعة فاخرة بختم شمعي مميز</p>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-[#2D141E] truncate">ورود طبيعية قطف يومي</h4>
+              <p className="text-[10px] sm:text-[11px] text-[#AD647D]/80 leading-relaxed">أجود أنواع الزهور الهولندية الفاخرة</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs">
-            <div className="w-12 h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6 text-[#C9A46A]" />
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
+              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[#AD647D]" />
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#2D141E]">الدفع عند الاستلام فقط</h4>
-              <p className="text-[11px] text-[#AD647D]/80">نقدًا أو شبكة (مدى) مع المندوب عند الاستلام</p>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-[#2D141E] truncate">كرت إهداء مجاني</h4>
+              <p className="text-[10px] sm:text-[11px] text-[#AD647D]/80 leading-relaxed">مع طباعة فاخرة بختم شمعي مميز</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/70 border border-[#F8DDE6]/80 shadow-2xs min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#F8DDE6] flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#C9A46A]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-[#2D141E] truncate">الدفع عند الاستلام فقط</h4>
+              <p className="text-[10px] sm:text-[11px] text-[#AD647D]/80 leading-relaxed">نقدًا أو شبكة (مدى) مع المندوب</p>
             </div>
           </div>
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 py-8 sm:py-12">
           
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">

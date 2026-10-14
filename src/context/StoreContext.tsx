@@ -55,7 +55,8 @@ import {
   INITIAL_PRODUCTS, 
   INITIAL_SETTINGS, 
   INITIAL_COUPONS,
-  INITIAL_REVIEWS
+  INITIAL_REVIEWS,
+  DEFAULT_ANNOUNCEMENT_SETTINGS
 } from '../lib/initialData';
 
 // Initial sample affiliates to seed if empty
@@ -411,17 +412,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const unsubSettings = onSnapshot(settingsRef, async (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as StoreSettings;
+            // Build rich announcement settings with backward compatibility
+            const announcementSettings = data.announcementSettings || {
+              ...DEFAULT_ANNOUNCEMENT_SETTINGS,
+              enabled: data.announcementActive !== undefined ? data.announcementActive : DEFAULT_ANNOUNCEMENT_SETTINGS.enabled,
+              messages: data.announcementText ? [
+                {
+                  id: 'ann-init',
+                  text: data.announcementText,
+                  badge: 'فلورا فاتن',
+                  icon: 'sparkles' as const,
+                  isActive: true
+                },
+                ...DEFAULT_ANNOUNCEMENT_SETTINGS.messages.slice(1)
+              ] : DEFAULT_ANNOUNCEMENT_SETTINGS.messages
+            };
+
+            const mergedSettings: StoreSettings = {
+              ...INITIAL_SETTINGS,
+              ...data,
+              announcementSettings
+            };
+
+            // Only update address/cities in background if missing
             if (!data.address?.includes('الحمراء') || !data.address?.includes('مكة') || data.email !== 'floraf.aten1@gmail.com') {
               const updatedData: StoreSettings = {
-                ...data,
+                ...mergedSettings,
                 address: INITIAL_SETTINGS.address,
                 cities: (data.cities && data.cities.some(c => c.name.includes('الحمراء'))) ? data.cities : INITIAL_SETTINGS.cities,
-                announcementText: (data.announcementText?.includes('الحمراء') && data.announcementText?.includes('الاستلام فقط')) ? data.announcementText : INITIAL_SETTINGS.announcementText
               };
               setDoc(settingsRef, updatedData, { merge: true }).catch(err => console.warn('Settings sync:', err));
               setSettings(updatedData);
             } else {
-              setSettings(data);
+              setSettings(mergedSettings);
             }
           } else {
             setDoc(settingsRef, INITIAL_SETTINGS).catch(err => console.warn('Settings seed:', err));
@@ -1240,10 +1263,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const saveSettings = async (newSettings: StoreSettings) => {
     try {
-      await setDoc(doc(db, 'storeSettings', 'general'), {
+      const announcementActive = newSettings.announcementSettings !== undefined
+        ? newSettings.announcementSettings.enabled
+        : (newSettings.announcementActive ?? true);
+      
+      const firstActiveMsg = newSettings.announcementSettings?.messages?.find(m => m.isActive)?.text;
+      const announcementText = firstActiveMsg || newSettings.announcementText || INITIAL_SETTINGS.announcementText;
+
+      const payload: StoreSettings = {
         ...newSettings,
+        announcementActive,
+        announcementText,
         updatedAt: new Date().toISOString()
-      });
+      };
+
+      await setDoc(doc(db, 'storeSettings', 'general'), payload);
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'storeSettings/general');
       throw error;

@@ -234,20 +234,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
         {/* Step Progress Bar (if not completed) */}
         {!completedOrder && (
-          <div className="px-6 py-3 bg-[#FFFDFD] border-b border-[#F8DDE6] flex items-center justify-between text-xs">
-            <div className={`flex items-center gap-1.5 font-bold ${step >= 1 ? 'text-[#AD647D]' : 'text-gray-400'}`}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 1 ? 'bg-[#AD647D] text-white' : 'bg-gray-200'}`}>1</span>
+          <div className="px-3 sm:px-6 py-2.5 sm:py-3 bg-[#FFFDFD] border-b border-[#F8DDE6] flex items-center justify-between text-[11px] sm:text-xs overflow-x-auto no-scrollbar">
+            <div className={`flex items-center gap-1 sm:gap-1.5 font-bold shrink-0 ${step >= 1 ? 'text-[#AD647D]' : 'text-gray-400'}`}>
+              <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] ${step >= 1 ? 'bg-[#AD647D] text-white' : 'bg-gray-200'}`}>1</span>
               <span>بياناتك</span>
             </div>
-            <div className="w-8 h-0.5 bg-[#F8DDE6]" />
-            <div className={`flex items-center gap-1.5 font-bold ${step >= 2 ? 'text-[#AD647D]' : 'text-gray-400'}`}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 2 ? 'bg-[#AD647D] text-white' : 'bg-gray-200'}`}>2</span>
+            <div className="w-4 sm:w-8 h-0.5 bg-[#F8DDE6] shrink-0" />
+            <div className={`flex items-center gap-1 sm:gap-1.5 font-bold shrink-0 ${step >= 2 ? 'text-[#AD647D]' : 'text-gray-400'}`}>
+              <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] ${step >= 2 ? 'bg-[#AD647D] text-white' : 'bg-gray-200'}`}>2</span>
               <span>التوصيل والإهداء</span>
             </div>
-            <div className="w-8 h-0.5 bg-[#F8DDE6]" />
-            <div className={`flex items-center gap-1.5 font-bold ${step >= 3 ? 'text-[#AD647D]' : 'text-gray-400'}`}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 3 ? 'bg-[#AD647D] text-white' : 'bg-gray-200'}`}>3</span>
-              <span>الدفع عند الاستلام</span>
+            <div className="w-4 sm:w-8 h-0.5 bg-[#F8DDE6] shrink-0" />
+            <div className={`flex items-center gap-1 sm:gap-1.5 font-bold shrink-0 ${step >= 3 ? 'text-[#AD647D]' : 'text-gray-400'}`}>
+              <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] ${step >= 3 ? 'bg-[#AD647D] text-white' : 'bg-gray-200'}`}>3</span>
+              <span>الدفع</span>
             </div>
           </div>
         )}

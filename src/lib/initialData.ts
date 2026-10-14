@@ -1,4 +1,4 @@
-import { Product, Category, StoreSettings, Coupon, ProductReview } from '../types';
+import { Product, Category, StoreSettings, Coupon, ProductReview, AnnouncementSettings } from '../types';
 
 export const INITIAL_CATEGORIES: Category[] = [
   {
@@ -317,6 +317,63 @@ export const INITIAL_PRODUCTS: Product[] = [
   }
 ];
 
+export const DEFAULT_ANNOUNCEMENT_SETTINGS: AnnouncementSettings = {
+  enabled: true,
+  mode: 'marquee',
+  speed: 'normal',
+  durationSeconds: 5,
+  direction: 'rtl',
+  pauseOnHover: true,
+  closable: true,
+  showIcon: true,
+  bgColorStart: '#AD647D',
+  bgColorEnd: '#8C465F',
+  textColor: '#FFFFFF',
+  accentColor: '#FFE680',
+  messages: [
+    {
+      id: 'ann-1',
+      text: 'متجر Flora Faten بمكة المكرمة - حي الحمراء | التجهيز والتوصيل خلال 2 إلى 5 أيام',
+      badge: 'توصيل مكة',
+      icon: 'truck',
+      linkType: 'page',
+      linkValue: 'policy',
+      linkText: 'تفاصيل التوصيل',
+      isActive: true
+    },
+    {
+      id: 'ann-2',
+      text: 'استخدم كود الخصم FATEN10 واحصل على خصم 10% على باقات الورد والبوكسات',
+      badge: 'كود خصم 10%',
+      icon: 'tag',
+      linkType: 'coupon',
+      linkValue: 'FATEN10',
+      linkText: 'نسخ الكود',
+      isActive: true
+    },
+    {
+      id: 'ann-3',
+      text: 'تشكيلة راقية من بوكسات الورد المخملية والشوكولاتة البلجيكية لجميع مناسباتكم السعيدة',
+      badge: 'جديدنا',
+      icon: 'sparkles',
+      linkType: 'category',
+      linkValue: 'luxury-boxes',
+      linkText: 'تصفح البوكسات',
+      isActive: true
+    },
+    {
+      id: 'ann-4',
+      text: 'خدمة العملاء والطلبات المخصصة والتنسيق الخاص عبر الواتساب: 0501234567',
+      badge: 'خدمة العملاء',
+      icon: 'phone',
+      linkType: 'page',
+      linkValue: 'contact',
+      linkText: 'تواصل معنا',
+      isActive: true
+    }
+  ]
+};
+
 export const INITIAL_SETTINGS: StoreSettings = {
   storeName: 'Flora Faten | فلورا فاتن',
   storeNameEn: 'Flora Faten Boutique - Makkah',
@@ -329,8 +386,9 @@ export const INITIAL_SETTINGS: StoreSettings = {
   deliveryFeeDefault: 20,
   freeDeliveryThreshold: 300,
   minOrderAmount: 50,
-  announcementText: '🌸 متجر Flora Faten بمكة المكرمة - حي الحمراء | التوصيل والاستلام خلال من يومين إلى 5 أيام | الدفع عند الاستلام فقط 💐',
+  announcementText: '🌸 متجر Flora Faten بمكة المكرمة - حي الحمراء | التجهيز والتوصيل خلال من 2 إلى 5 أيام | الدفع عند الاستلام فقط 💐',
   announcementActive: true,
+  announcementSettings: DEFAULT_ANNOUNCEMENT_SETTINGS,
   cities: [
     { name: 'مكة المكرمة - حي الحمراء (المنطقة الرئيسية)', fee: 15, active: true },
     { name: 'مكة المكرمة - حي الحمراء وأم الجود', fee: 15, active: true },

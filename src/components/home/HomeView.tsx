@@ -30,33 +30,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const bestSellers = products.filter(p => p.isBestSeller).slice(0, 4);
 
   return (
-    <div className="space-y-16 animate-fadeIn">
+    <div className="space-y-12 sm:space-y-16 animate-fadeIn w-full max-w-full overflow-hidden">
       
       {/* LUXURY HERO BANNER */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#FFF5F7] via-[#FFF9FA] to-white pt-8 pb-16 md:py-20 border-b border-[#F8DDE6]">
-        {/* Soft Background Decorative Blobs */}
-        <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 rounded-full bg-[#F8DDE6]/40 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 rounded-full bg-[#E7A0B4]/20 blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden w-full max-w-full bg-gradient-to-b from-[#FFF5F7] via-[#FFF9FA] to-white pt-6 pb-12 sm:pt-8 sm:pb-16 md:py-20 border-b border-[#F8DDE6]">
+        {/* Soft Background Decorative Blobs without negative margin leaks */}
+        <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 rounded-full bg-[#F8DDE6]/40 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 sm:w-96 h-64 sm:h-96 rounded-full bg-[#E7A0B4]/20 blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left/Right Text Content (RTL) */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-right">
+            <div className="lg:col-span-7 space-y-5 sm:space-y-6 text-center lg:text-right min-w-0">
               
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#E7A0B4] shadow-xs text-xs font-bold text-[#AD647D]">
-                <Sparkles className="w-4 h-4 text-[#C9A46A] animate-spin" />
-                <span>بوتيك الزهور والهدايا الفاخرة باللون الوردي والأبيض</span>
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-white border border-[#E7A0B4] shadow-xs text-[11px] sm:text-xs font-bold text-[#AD647D] max-w-full">
+                <Sparkles className="w-3.5 h-3.5 text-[#C9A46A] shrink-0" />
+                <span className="truncate">بوتيك الزهور والهدايا الفاخرة باللون الوردي والأبيض</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#2D141E] leading-tight font-serif-lux">
+              <h1 className="text-2xl sm:text-4xl lg:text-6xl font-black text-[#2D141E] leading-tight font-serif-lux">
                 أبهج من تحب بأرقى <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#AD647D] via-[#E7A0B4] to-[#C9A46A]">
                   باقات الورد والهدايا
                 </span>
               </h1>
 
-              <p className="text-sm sm:text-base text-[#5D2B3D]/80 leading-relaxed max-w-xl mx-auto lg:mx-0">
+              <p className="text-xs sm:text-base text-[#5D2B3D]/80 leading-relaxed max-w-xl mx-auto lg:mx-0">
                 في <strong className="text-[#AD647D]">Flora Faten</strong> نصمم مشاعرك بعناية فائقة بمكة المكرمة. ورود هولندية طبيعية قطف يومي، ورود صناعية دائمة تدوم طويلاً، بوكسات جلدية فاخرة، وتوزيعات بالونات وشوكولاتة بلجيكية مع توصيل واستلام مجدول خلال من يومين إلى 5 أيام لجميع أحياء مكة المكرمة، والدفع عند الاستلام فقط.
               </p>
 
@@ -64,7 +64,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
                 <button
                   onClick={() => onNavigate('products')}
-                  className="w-full sm:w-auto py-3.5 px-8 rounded-full bg-gradient-to-r from-[#E7A0B4] via-[#AD647D] to-[#AD647D] text-white font-bold text-sm shadow-md hover:shadow-xl hover:brightness-105 active:scale-98 transition flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto py-3.5 px-8 rounded-full bg-gradient-to-r from-[#E7A0B4] via-[#AD647D] to-[#AD647D] text-white font-bold text-sm shadow-md hover:shadow-xl hover:brightness-105 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>تسوق الباقات الفاخرة</span>
                   <ArrowLeft className="w-4 h-4" />
@@ -72,25 +72,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
                 <button
                   onClick={() => onNavigate('cat_pink-white-bouquets')}
-                  className="w-full sm:w-auto py-3.5 px-6 rounded-full bg-white border border-[#E7A0B4] hover:bg-[#FFF0F4] text-[#AD647D] font-bold text-sm shadow-xs transition flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto py-3.5 px-6 rounded-full bg-white border border-[#E7A0B4] hover:bg-[#FFF0F4] text-[#AD647D] font-bold text-sm shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Flower2 className="w-4 h-4 text-[#C9A46A]" />
                   <span>مجموعة الوردي والأبيض</span>
                 </button>
               </div>
 
-              {/* Mini Guarantees */}
-              <div className="pt-6 grid grid-cols-3 gap-2 border-t border-[#F8DDE6]/80 text-[11px] text-[#4A2030] font-semibold">
-                <div className="flex items-center justify-center lg:justify-start gap-1.5">
-                  <Truck className="w-4 h-4 text-[#AD647D]" />
+              {/* Mini Guarantees - responsive 1 col mobile, 3 cols sm+ */}
+              <div className="pt-5 sm:pt-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-2 border-t border-[#F8DDE6]/80 text-[11px] sm:text-xs text-[#4A2030] font-semibold">
+                <div className="flex items-center justify-center lg:justify-start gap-1.5 p-1.5 sm:p-0 rounded-xl bg-white/40 sm:bg-transparent">
+                  <Truck className="w-4 h-4 text-[#AD647D] shrink-0" />
                   <span>توصيل واستلام خلال 2 - 5 أيام</span>
                 </div>
-                <div className="flex items-center justify-center lg:justify-start gap-1.5">
-                  <Gift className="w-4 h-4 text-[#C9A46A]" />
+                <div className="flex items-center justify-center lg:justify-start gap-1.5 p-1.5 sm:p-0 rounded-xl bg-white/40 sm:bg-transparent">
+                  <Gift className="w-4 h-4 text-[#C9A46A] shrink-0" />
                   <span>كرت إهداء مجاني فاخر</span>
                 </div>
-                <div className="flex items-center justify-center lg:justify-start gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <div className="flex items-center justify-center lg:justify-start gap-1.5 p-1.5 sm:p-0 rounded-xl bg-white/40 sm:bg-transparent">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>ضمان نضارة الزهور 100%</span>
                 </div>
               </div>
@@ -98,8 +98,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
 
             {/* Visual Hero Showcase */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md">
+            <div className="lg:col-span-5 relative w-full min-w-0">
+              <div className="relative mx-auto max-w-sm sm:max-w-md">
                 
                 {/* Main Hero Image */}
                 <div className="aspect-4/5 rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-1 ring-[#F8DDE6] relative">
@@ -110,32 +110,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   />
                   
                   {/* Floating Overlay Card 1 */}
-                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2.5 animate-bounce duration-1000">
-                    <div className="w-9 h-9 rounded-xl bg-[#FFF0F4] flex items-center justify-center">
-                      <Flower2 className="w-5 h-5 text-[#AD647D]" />
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2 sm:gap-2.5 max-w-[85%]">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FFF0F4] flex items-center justify-center shrink-0">
+                      <Flower2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#AD647D]" />
                     </div>
-                    <div>
-                      <span className="text-[10px] text-gray-500 block">قطف يومي</span>
-                      <span className="text-xs font-black text-[#2D141E]">جوري وبيوني ملكي</span>
+                    <div className="min-w-0">
+                      <span className="text-[9px] sm:text-[10px] text-gray-500 block">قطف يومي</span>
+                      <span className="text-[11px] sm:text-xs font-black text-[#2D141E] truncate block">جوري وبيوني ملكي</span>
                     </div>
                   </div>
 
                   {/* Floating Overlay Card 2 */}
-                  <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-                      <Star className="w-5 h-5 text-[#C9A46A] fill-[#C9A46A]" />
+                  <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2 sm:gap-2.5 max-w-[85%]">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                      <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#C9A46A] fill-[#C9A46A]" />
                     </div>
-                    <div>
-                      <span className="text-[10px] text-gray-500 block">تقييم العملاء</span>
-                      <span className="text-xs font-black text-[#AD647D]">4.9 / 5 (أكثر من 1500 عميل)</span>
+                    <div className="min-w-0">
+                      <span className="text-[9px] sm:text-[10px] text-gray-500 block">تقييم العملاء</span>
+                      <span className="text-[10px] sm:text-xs font-black text-[#AD647D] truncate block">4.9 / 5 (أكثر من 1500 عميل)</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Golden Badge Accent */}
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full bg-gradient-to-tr from-[#C9A46A] to-[#E5CCA0] text-white p-2 flex flex-col items-center justify-center text-center shadow-lg border-2 border-white font-serif-lux text-xs font-bold">
+                {/* Golden Badge Accent safely positioned */}
+                <div className="absolute bottom-1 right-1 sm:-bottom-3 sm:-right-3 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-[#C9A46A] to-[#E5CCA0] text-white p-1.5 sm:p-2 flex flex-col items-center justify-center text-center shadow-lg border-2 border-white font-serif-lux text-[10px] sm:text-xs font-bold pointer-events-none">
                   <span>Flora</span>
-                  <span className="text-[10px]">Faten</span>
+                  <span className="text-[8px] sm:text-[10px]">Faten</span>
                 </div>
 
               </div>

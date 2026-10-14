@@ -56,7 +56,8 @@ import {
   UserProfile, 
   UserRole 
 } from '../../types';
-import { INITIAL_SETTINGS } from '../../lib/initialData';
+import { INITIAL_SETTINGS, DEFAULT_ANNOUNCEMENT_SETTINGS } from '../../lib/initialData';
+import { AnnouncementSettingsManager } from './AnnouncementSettingsManager';
 
 export const AdminDashboard: React.FC = () => {
   const { 
@@ -90,7 +91,9 @@ export const AdminDashboard: React.FC = () => {
     processPayout
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'categories' | 'inventory' | 'coupons' | 'settings' | 'reports' | 'affiliates' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'categories' | 'inventory' | 'coupons' | 'settings' | 'announcements' | 'reports' | 'affiliates' | 'users'>('overview');
+  const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
+  const [announcementSaveSuccess, setAnnouncementSaveSuccess] = useState(false);
   
   // Affiliates management state
   const [affiliatesSubTab, setAffiliatesSubTab] = useState<'active' | 'applications' | 'payouts'>('active');
@@ -332,6 +335,21 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     await saveSettings(settingsForm);
     alert('تم حفظ إعدادات المتجر بنجاح على قاعدة البيانات السحابية ✅');
+  };
+
+  // Handle Save Announcement Settings
+  const handleSaveAnnouncementSettings = async () => {
+    setIsSavingAnnouncement(true);
+    try {
+      await saveSettings(settingsForm);
+      setAnnouncementSaveSuccess(true);
+      setTimeout(() => setAnnouncementSaveSuccess(false), 4500);
+    } catch (err) {
+      console.error('Error saving announcements:', err);
+      alert('حدث خطأ أثناء حفظ إعدادات شريط الإعلانات في قاعدة البيانات');
+    } finally {
+      setIsSavingAnnouncement(false);
+    }
   };
 
   // Export CSV
@@ -627,6 +645,21 @@ export const AdminDashboard: React.FC = () => {
         >
           <DollarSign className="w-4 h-4" />
           <span>الكوبونات والخصومات</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('announcements')}
+          className={`py-2 px-4 rounded-2xl whitespace-nowrap transition flex items-center gap-1.5 ${
+            activeTab === 'announcements'
+              ? 'bg-[#AD647D] text-white shadow-xs'
+              : 'bg-white text-[#4A2030] hover:bg-pink-50 border border-[#F8DDE6]'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-[#C9A46A]" />
+          <span>شريط الإعلانات الترويجي</span>
+          {settingsForm.announcementSettings?.enabled !== false && (
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          )}
         </button>
 
         <button
@@ -1763,27 +1796,67 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Announcement Banner */}
-            <div className="pt-4 border-t border-pink-100 space-y-3">
+            {/* Announcement Banner Shortcut Card */}
+            <div className="pt-4 border-t border-pink-100 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#AD647D]">شريط الإعلانات أعلى المتجر</span>
-                <label className="flex items-center gap-2 text-xs cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settingsForm.announcementActive}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, announcementActive: e.target.checked })}
-                    className="accent-[#AD647D]"
-                  />
-                  <span>تفعيل الشريط</span>
-                </label>
+                <div>
+                  <span className="text-xs font-bold text-[#AD647D] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C9A46A]" />
+                    <span>شريط الإعلانات الترويجي أعلى المتجر</span>
+                  </span>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    يدعم النص المتحرك (Marquee)، تتابع الرسائل، تخصيص الألوان، والأكوابون والروابط
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('announcements')}
+                    className="py-1.5 px-3 bg-[#FFF0F4] hover:bg-[#F8DDE6] border border-[#F8DDE6] text-[#AD647D] rounded-xl text-xs font-bold transition flex items-center gap-1"
+                  >
+                    <span>لوحة التحكم الكاملة للشريط</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  <label className="flex items-center gap-1.5 text-xs cursor-pointer mr-2">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.announcementSettings?.enabled ?? settingsForm.announcementActive}
+                      onChange={(e) => {
+                        const enabled = e.target.checked;
+                        const currAnn = settingsForm.announcementSettings || DEFAULT_ANNOUNCEMENT_SETTINGS;
+                        setSettingsForm({
+                          ...settingsForm,
+                          announcementActive: enabled,
+                          announcementSettings: {
+                            ...currAnn,
+                            enabled
+                          }
+                        });
+                      }}
+                      className="accent-[#AD647D] w-4 h-4"
+                    />
+                    <span className="font-bold">تفعيل الشريط</span>
+                  </label>
+                </div>
               </div>
 
-              <input
-                type="text"
-                value={settingsForm.announcementText}
-                onChange={(e) => setSettingsForm({ ...settingsForm, announcementText: e.target.value })}
-                className="w-full bg-[#FFFDFD] border border-[#F8DDE6] rounded-xl p-2.5 text-xs"
-              />
+              <div className="p-3.5 rounded-2xl bg-[#FFF9FA] border border-[#F8DDE6] flex items-center justify-between gap-3">
+                <div className="text-xs text-gray-700 truncate">
+                  <span className="font-bold text-[#AD647D] ml-1.5">الرسالة الحالية:</span>
+                  <span>
+                    {settingsForm.announcementSettings?.messages?.find(m => m.isActive)?.text || settingsForm.announcementText}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('announcements')}
+                  className="text-xs text-[#C9A46A] hover:underline font-bold shrink-0"
+                >
+                  تعديل الرسائل والألوان ⚙️
+                </button>
+              </div>
             </div>
 
             <div className="pt-4 flex justify-end">
@@ -1795,6 +1868,102 @@ export const AdminDashboard: React.FC = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* DEDICATED TAB: ANNOUNCEMENT BAR MANAGER */}
+      {activeTab === 'announcements' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header Card */}
+          <div className="bg-white rounded-3xl border border-[#F8DDE6] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-[#FFF0F4] text-[#AD647D]">
+                  <Sparkles className="w-5 h-5 text-[#C9A46A]" />
+                </span>
+                <h3 className="text-base font-bold text-[#2D141E]">
+                  إدارة شريط الإعلانات الترويجي (Top Announcement Bar)
+                </h3>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                تخصيص كامل للنصوص المتحركة (Marquee)، تتابع الرسائل (Slideshow)، الألوان الملكية، وروابط الإجراء، مع حفظ فوري في Firebase.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {announcementSaveSuccess && (
+                <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold px-3 py-2 rounded-xl animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>تم الحفظ في Firebase Firestore بنجاح ✅</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                disabled={isSavingAnnouncement}
+                onClick={handleSaveAnnouncementSettings}
+                className="py-3 px-6 bg-[#AD647D] hover:bg-[#8C465F] disabled:opacity-50 text-white text-xs font-bold rounded-2xl shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+              >
+                {isSavingAnnouncement ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>جارٍ الحفظ في السحابة...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>حفظ التعديلات في قاعدة البيانات</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Announcement Settings Manager Component */}
+          <AnnouncementSettingsManager
+            value={settingsForm.announcementSettings || DEFAULT_ANNOUNCEMENT_SETTINGS}
+            onChange={(updated) => {
+              const firstActiveText = updated.messages.find(m => m.isActive)?.text || settingsForm.announcementText;
+              setSettingsForm({
+                ...settingsForm,
+                announcementSettings: updated,
+                announcementActive: updated.enabled,
+                announcementText: firstActiveText
+              });
+            }}
+            products={products}
+            categories={categories}
+            coupons={coupons}
+          />
+
+          {/* Bottom Sticky-like Action Bar */}
+          <div className="bg-white rounded-3xl border border-[#F8DDE6] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <ShieldCheck className="w-4 h-4 text-[#AD647D]" />
+              <span>
+                التغييرات تنعكس فوراً في الوقت الفعلي عبر تقنية <strong>Firestore onSnapshot</strong> لجميع زوار المتجر.
+              </span>
+            </div>
+
+            <button
+              type="button"
+              disabled={isSavingAnnouncement}
+              onClick={handleSaveAnnouncementSettings}
+              className="w-full sm:w-auto py-2.5 px-8 bg-[#AD647D] hover:bg-[#8C465F] disabled:opacity-50 text-white text-xs font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isSavingAnnouncement ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>جارٍ الحفظ...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>حفظ إعدادات شريط الإعلانات الآن</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
