@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, ShoppingBag, Eye, Star, Sparkles, Flame } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, Star, Sparkles, Flame, Scale } from 'lucide-react';
 import { Product } from '../../types';
 import { useStore } from '../../context/StoreContext';
 
@@ -9,8 +9,9 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails }) => {
-  const { isInWishlist, toggleWishlist } = useStore();
+  const { isInWishlist, toggleWishlist, isInCompare, addToCompare, removeFromCompare } = useStore();
   const inWishlist = isInWishlist(product.id);
+  const inCompare = isInCompare(product.id);
 
   const discountPercent = product.salePrice
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
@@ -68,21 +69,46 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
           </span>
         </div>
 
-        {/* Wishlist Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleWishlist(product.id);
-          }}
-          className={`absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all shadow-md z-10 cursor-pointer ${
-            inWishlist
-              ? 'bg-rose-500 text-white scale-105'
-              : 'bg-white/90 backdrop-blur-xs text-[#AD647D] hover:bg-white hover:text-rose-500 hover:scale-110'
-          }`}
-          aria-label="المفضلة"
-        >
-          <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${inWishlist ? 'fill-current' : ''}`} />
-        </button>
+        {/* Floating Action Buttons: Wishlist & Compare */}
+        <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 flex flex-col gap-1.5 z-10">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleWishlist(product.id);
+            }}
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all shadow-md cursor-pointer ${
+              inWishlist
+                ? 'bg-rose-500 text-white scale-105'
+                : 'bg-white/90 backdrop-blur-xs text-[#AD647D] hover:bg-white hover:text-rose-500 hover:scale-110'
+            }`}
+            title={inWishlist ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+            aria-label="المفضلة"
+          >
+            <Heart className={`w-3.5 h-3.5 transition-transform ${inWishlist ? 'fill-current' : ''}`} />
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (inCompare) {
+                removeFromCompare(product.id);
+              } else {
+                addToCompare(product.id);
+              }
+            }}
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all shadow-md cursor-pointer ${
+              inCompare
+                ? 'bg-[#C9A46A] text-white scale-105'
+                : 'bg-white/90 backdrop-blur-xs text-[#AD647D] hover:bg-white hover:text-[#C9A46A] hover:scale-110'
+            }`}
+            title={inCompare ? "مضاف لجدول المقارنة (اضغط للإزالة)" : "مقارنة هذه الباقة ⚖️"}
+            aria-label="مقارنة المنتج"
+          >
+            <Scale className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
         {/* Desktop Quick Customization Floating Button */}
         <div className="absolute inset-x-3 bottom-3 hidden sm:flex justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-10 pointer-events-none">
@@ -168,8 +194,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
             aria-label={`تخصيص وطلب ${product.name}`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span className="hidden xs:inline">تخصيص وإهداء</span>
-            <span className="xs:hidden">طلب</span>
+            <span className="hidden sm:inline">تخصيص وإهداء</span>
+            <span className="sm:hidden">طلب</span>
           </button>
         </div>
       </div>

@@ -25,6 +25,26 @@ export interface ProductReview {
   verifiedPurchase?: boolean;
 }
 
+export type OccasionType = 
+  | 'birthday'
+  | 'wedding'
+  | 'graduation'
+  | 'newborn'
+  | 'apology'
+  | 'gratitude'
+  | 'romantic'
+  | 'seasonal';
+
+export interface OccasionInfo {
+  id: OccasionType;
+  name: string;
+  nameEn: string;
+  emoji: string;
+  description: string;
+  badge: string;
+  bgGradient: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -43,6 +63,7 @@ export interface Product {
   flowerType: FlowerType;
   sizes: ProductSize[];
   addons: ProductAddon[];
+  occasions?: OccasionType[];
   rating: number;
   reviewsCount: number;
   allowCardMessage?: boolean;
@@ -117,6 +138,8 @@ export interface Order {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   notes?: string;
+  driverNotes?: string;
+  locationUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -176,8 +199,42 @@ export interface StoreSettings {
   announcementText: string;
   announcementActive: boolean;
   announcementSettings?: AnnouncementSettings;
+  bannerSliderSettings?: BannerSliderSettings;
   cities: CityOption[];
   updatedAt: string;
+}
+
+export type BannerLinkType = 'none' | 'category' | 'product' | 'page' | 'custom';
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl: string; // High-res image for desktop
+  mobileImageUrl?: string; // Optional optimized image for mobile
+  altText: string;
+  linkType: BannerLinkType;
+  linkValue?: string; // Target slug, product ID, page name, or URL
+  buttonText?: string; // e.g. "تسوق الآن"
+  isActive: boolean;
+  order: number;
+  startDate?: string; // ISO date string
+  endDate?: string; // ISO date string
+  objectFit?: 'cover' | 'contain' | 'fill';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BannerSliderSettings {
+  autoPlay: boolean;
+  intervalSeconds: number; // Default 3
+  pauseOnHover: boolean;
+  showArrows: boolean;
+  showDots: boolean;
+  transitionEffect: 'slide' | 'fade';
+  aspectRatioDesktop: '21/9' | '16/7' | '16/9' | '3/1';
+  aspectRatioMobile: '16/9' | '4/3' | '1/1' | '21/9';
+  containerMaxWidth: 'full' | 'boxed';
 }
 
 export interface Coupon {
@@ -202,6 +259,7 @@ export interface UserProfile {
   status?: 'active' | 'suspended';
   emailVerified?: boolean;
   affiliateId?: string;
+  wishlist?: string[];
   createdAt: string;
 }
 

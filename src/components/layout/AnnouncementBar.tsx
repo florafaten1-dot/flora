@@ -301,11 +301,11 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({
         background: `linear-gradient(135deg, ${config.bgColorStart} 0%, ${config.bgColorEnd} 100%)`,
         ...durationStyle
       }}
-      className="relative z-40 w-full max-w-full overflow-hidden min-h-[38px] sm:min-h-[40px] flex items-center shadow-xs border-b border-black/5"
+      className="relative z-40 w-full max-w-full overflow-hidden overflow-x-clip min-h-[38px] sm:min-h-[40px] flex items-center shadow-xs border-b border-black/5 min-w-0"
     >
       {/* Toast popup when coupon is copied */}
       {copiedCode && (
-        <div className="absolute top-1 left-1/2 -translate-x-1/2 z-60 bg-emerald-700 text-white text-[10px] sm:text-[11px] font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 animate-fadeIn max-w-[90vw] text-center pointer-events-none">
+        <div className="absolute top-1 left-1/2 -translate-x-1/2 z-60 bg-emerald-700 text-white text-[10px] sm:text-[11px] font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 animate-fadeIn max-w-[90%] text-center pointer-events-none">
           <Check className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">تم نسخ الكوبون ({copiedCode}) بنجاح! 🌸</span>
         </div>
@@ -314,9 +314,10 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({
       {/* Marquee Mode */}
       {isMarquee && (
         <div 
-          className={`announcement-marquee-container flex items-center py-2 ${
+          className={`announcement-marquee-container flex-1 min-w-0 w-full max-w-full flex items-center py-2 ${
             config.closable ? 'pl-8 pr-3 sm:pl-10 sm:pr-4' : 'px-3 sm:px-4'
           }`}
+          style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}
         >
           <div 
             className={`flex items-center shrink-0 ${
@@ -336,20 +337,20 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({
       {/* Slideshow Mode */}
       {isSlideshow && (
         <div 
-          className={`w-full flex items-center justify-center py-2 relative ${
+          className={`w-full max-w-full min-w-0 flex items-center justify-center py-2 relative overflow-hidden ${
             config.closable ? 'pl-10 pr-6 sm:pl-12 sm:pr-8' : 'px-4'
           }`}
         >
-          {/* Previous Slide Button (Desktop) */}
+          {/* Previous Slide Button */}
           {activeMessages.length > 1 && (
             <button
               type="button"
               onClick={() => setActiveSlideIndex(prev => (prev - 1 + activeMessages.length) % activeMessages.length)}
               style={{ color: config.textColor }}
-              className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 active:scale-90 transition opacity-75 hover:opacity-100 cursor-pointer"
+              className="flex absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 p-0.5 sm:p-1 rounded-full hover:bg-white/15 active:scale-90 transition opacity-80 hover:opacity-100 cursor-pointer z-10"
               aria-label="الرسالة السابقة"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           )}
 
@@ -363,16 +364,16 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({
             </div>
           </div>
 
-          {/* Next Slide Button (Desktop) */}
+          {/* Next Slide Button */}
           {activeMessages.length > 1 && (
             <button
               type="button"
               onClick={() => setActiveSlideIndex(prev => (prev + 1) % activeMessages.length)}
               style={{ color: config.textColor }}
-              className="hidden md:flex absolute left-8 sm:left-10 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 active:scale-90 transition opacity-75 hover:opacity-100 cursor-pointer"
+              className="flex absolute left-7 sm:left-9 top-1/2 -translate-y-1/2 p-0.5 sm:p-1 rounded-full hover:bg-white/15 active:scale-90 transition opacity-80 hover:opacity-100 cursor-pointer z-10"
               aria-label="الرسالة التالية"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           )}
 
@@ -401,7 +402,7 @@ export const AnnouncementBar: React.FC<AnnouncementBarProps> = ({
       {/* Static Mode / Reduced Motion fallback */}
       {(!isMarquee && !isSlideshow) && (
         <div 
-          className={`w-full flex items-center justify-center py-2 ${
+          className={`w-full max-w-full min-w-0 overflow-hidden flex items-center justify-center py-2 ${
             config.closable ? 'pl-8 pr-3 sm:pl-10 sm:pr-4' : 'px-3 sm:px-4'
           }`}
         >

@@ -16,7 +16,7 @@ import { useStore } from '../../context/StoreContext';
 
 export const AboutView: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fadeIn space-y-12">
+    <div className="w-full max-w-4xl mx-auto px-4 py-6 sm:py-8 animate-fadeIn space-y-8 sm:space-y-12 overflow-hidden">
       <div className="text-center space-y-3">
         <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#E7A0B4] to-[#F8DDE6] border-2 border-[#C9A46A] flex items-center justify-center mx-auto shadow-md">
           <Flower2 className="w-8 h-8 text-[#AD647D]" />
@@ -82,7 +82,7 @@ export const ContactView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fadeIn space-y-8">
+    <div className="w-full max-w-4xl mx-auto px-4 py-6 sm:py-8 animate-fadeIn space-y-8 overflow-hidden">
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-black text-[#2D141E] font-serif-lux">
           اتصل بنا | تواصل مع فلورا فاتن
@@ -210,7 +210,7 @@ export const ContactView: React.FC = () => {
 
 export const PolicyView: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fadeIn space-y-8">
+    <div className="w-full max-w-4xl mx-auto px-4 py-6 sm:py-8 animate-fadeIn space-y-8 overflow-hidden">
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-black text-[#2D141E] font-serif-lux">
           الشروط والأحكام وسياسة الاسترجاع والتوصيل

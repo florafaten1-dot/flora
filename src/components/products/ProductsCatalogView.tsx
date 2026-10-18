@@ -7,11 +7,13 @@ import {
   Sparkles, 
   SlidersHorizontal,
   X,
-  RotateCcw
+  RotateCcw,
+  Gift
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ProductCard } from './ProductCard';
 import { Product, FlowerType } from '../../types';
+import { STORE_OCCASIONS } from '../../lib/initialData';
 
 interface ProductsCatalogViewProps {
   initialCategory?: string;
@@ -25,6 +27,7 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
   const { products, categories } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+  const [selectedOccasion, setSelectedOccasion] = useState<string>('all');
   const [selectedFlowerType, setSelectedFlowerType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc' | 'rating'>('featured');
   const [searchFilter, setSearchFilter] = useState('');
@@ -32,7 +35,12 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
   // Update category when prop changes
   React.useEffect(() => {
     if (initialCategory) {
-      setSelectedCategory(initialCategory);
+      if (initialCategory.startsWith('occ_')) {
+        setSelectedOccasion(initialCategory.replace('occ_', ''));
+        setSelectedCategory('all');
+      } else {
+        setSelectedCategory(initialCategory);
+      }
     }
   }, [initialCategory]);
 
@@ -42,6 +50,9 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
       // Category filter
       const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
       
+      // Occasion filter
+      const matchesOccasion = selectedOccasion === 'all' || (p.occasions && p.occasions.includes(selectedOccasion as any));
+
       // Flower Type filter
       const matchesFlowerType = selectedFlowerType === 'all' || p.flowerType === selectedFlowerType;
 
@@ -51,7 +62,7 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
         p.description.toLowerCase().includes(searchFilter.toLowerCase()) ||
         (p.categoryName && p.categoryName.toLowerCase().includes(searchFilter.toLowerCase()));
 
-      return matchesCategory && matchesFlowerType && matchesSearch;
+      return matchesCategory && matchesOccasion && matchesFlowerType && matchesSearch;
     }).sort((a, b) => {
       const priceA = a.salePrice ?? a.price;
       const priceB = b.salePrice ?? b.price;
@@ -61,7 +72,7 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
       return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
     });
-  }, [products, selectedCategory, selectedFlowerType, sortBy, searchFilter]);
+  }, [products, selectedCategory, selectedOccasion, selectedFlowerType, sortBy, searchFilter]);
 
   const hasActiveFilters = selectedCategory !== 'all' || selectedFlowerType !== 'all' || searchFilter.trim() !== '';
 
@@ -73,7 +84,7 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 animate-fadeIn space-y-6 sm:space-y-8">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 animate-fadeIn space-y-6 sm:space-y-8 w-full max-w-full overflow-hidden">
       
       {/* Page Title & Luxury Floral Header */}
       <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -139,7 +150,7 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
         </div>
 
         {/* Categories Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 no-scrollbar scroll-smooth">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 no-scrollbar scroll-smooth w-full max-w-full">
           <button
             onClick={() => setSelectedCategory('all')}
             className={`py-2 px-3.5 sm:px-4 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
@@ -167,6 +178,50 @@ export const ProductsCatalogView: React.FC<ProductsCatalogViewProps> = ({
                 <span>{c.name}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
                   isSelected ? 'bg-white/20 text-white' : 'bg-pink-100/60 text-[#AD647D]'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 2. Occasions Filter Strip */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth w-full max-w-full">
+          <span className="text-[11px] font-bold text-[#C9A46A] flex items-center gap-1 shrink-0 px-1">
+            <Gift className="w-3 h-3" />
+            <span>المناسبة:</span>
+          </span>
+
+          <button
+            onClick={() => setSelectedOccasion('all')}
+            className={`py-1.5 px-3 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+              selectedOccasion === 'all'
+                ? 'bg-[#C9A46A] text-white shadow-2xs'
+                : 'bg-[#FFF9FA] text-[#4A2030] hover:bg-amber-50 border border-[#F8DDE6]'
+            }`}
+          >
+            كافة المناسبات
+          </button>
+
+          {STORE_OCCASIONS.map((occ) => {
+            const count = products.filter(p => p.occasions && p.occasions.includes(occ.id)).length;
+            const isSelected = selectedOccasion === occ.id;
+
+            return (
+              <button
+                key={occ.id}
+                onClick={() => setSelectedOccasion(isSelected ? 'all' : occ.id)}
+                className={`py-1.5 px-3 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isSelected
+                    ? 'bg-[#AD647D] text-white shadow-2xs'
+                    : 'bg-[#FFF9FA] text-[#4A2030] hover:bg-pink-50 border border-[#F8DDE6]'
+                }`}
+              >
+                <span>{occ.emoji}</span>
+                <span>{occ.name}</span>
+                <span className={`text-[9px] px-1 py-0.2 rounded-full ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-pink-100 text-[#AD647D]'
                 }`}>
                   {count}
                 </span>

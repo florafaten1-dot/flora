@@ -1,4 +1,90 @@
-import { Product, Category, StoreSettings, Coupon, ProductReview, AnnouncementSettings } from '../types';
+import { 
+  Product, 
+  Category, 
+  StoreSettings, 
+  Coupon, 
+  ProductReview, 
+  AnnouncementSettings,
+  Banner,
+  BannerSliderSettings,
+  OccasionInfo,
+  OccasionType
+} from '../types';
+
+export const STORE_OCCASIONS: OccasionInfo[] = [
+  {
+    id: 'birthday',
+    name: 'أعياد الميلاد',
+    nameEn: 'Birthdays',
+    emoji: '🎂',
+    description: 'باقات مبهجة وبالونات وشوكولاتة للاحتفال بيوم الميلاد',
+    badge: 'الأكثر فرحاً',
+    bgGradient: 'from-pink-500/15 via-rose-400/10 to-amber-200/15'
+  },
+  {
+    id: 'wedding',
+    name: 'الزواج والذكرى السنوية',
+    nameEn: 'Weddings & Anniversaries',
+    emoji: '💍',
+    description: 'تنسيقات ملكية بالوردي والأبيض وأفخم زهور الجوري والبيوني',
+    badge: 'فخامة ملكية',
+    bgGradient: 'from-amber-500/15 via-pink-400/10 to-rose-200/15'
+  },
+  {
+    id: 'graduation',
+    name: 'التخرج والنجاح',
+    nameEn: 'Graduation',
+    emoji: '🎓',
+    description: 'باقات النخبة مع مجسمات قبعات التخرج وشرائط مبارك التخرج',
+    badge: 'مبروك النجاح',
+    bgGradient: 'from-purple-500/15 via-pink-400/10 to-indigo-200/15'
+  },
+  {
+    id: 'newborn',
+    name: 'المواليد وهدايا الأطفال',
+    nameEn: 'Newborns',
+    emoji: '👶',
+    description: 'ستاندات استقبال المواليد مع الورود الناعمة وتوزيعات الشوكولاتة',
+    badge: 'أهلاً بالقمر',
+    bgGradient: 'from-rose-500/15 via-pink-300/10 to-sky-200/15'
+  },
+  {
+    id: 'apology',
+    name: 'الاعتذار والمصالحة',
+    nameEn: 'Apology & Reconciliation',
+    emoji: '🕊️',
+    description: 'ورود نقية بيضاء وزهرية تعبّر عن أصدق المشاعر وتذيب الجليد',
+    badge: 'أصدق تعبير',
+    bgGradient: 'from-teal-500/15 via-pink-400/10 to-emerald-200/15'
+  },
+  {
+    id: 'gratitude',
+    name: 'الشكر والتقدير',
+    nameEn: 'Thank You & Gratitude',
+    emoji: '🌸',
+    description: 'هدايا راقية تعبّر عن الامتنان لمن كان لهم أثر جميل في حياتك',
+    badge: 'شكراً من القلب',
+    bgGradient: 'from-emerald-500/15 via-pink-400/10 to-amber-200/15'
+  },
+  {
+    id: 'romantic',
+    name: 'الهدايا الرومانسية',
+    nameEn: 'Romantic Gifts',
+    emoji: '💖',
+    description: 'أرقى باقات الجوري الهولندي وبوكسات المخمل الوردي الفاخر',
+    badge: 'مشاعر راقية',
+    bgGradient: 'from-red-500/15 via-pink-500/10 to-rose-200/15'
+  },
+  {
+    id: 'seasonal',
+    name: 'المناسبات الموسمية والأعياد',
+    nameEn: 'Seasonal & Holidays',
+    emoji: '🌙',
+    description: 'توزيعات وهدايا موسمية لعيد الفطر وعيد الأضحى وشهر رمضان',
+    badge: 'مواسم الخير',
+    bgGradient: 'from-amber-500/15 via-yellow-400/10 to-pink-200/15'
+  }
+];
 
 export const INITIAL_CATEGORIES: Category[] = [
   {
@@ -96,6 +182,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       { id: 'a2', name: 'بالون هيليوم وردي "ألف مبروك"', price: 35, icon: '🎈' },
       { id: 'a3', name: 'فازة زجاجية كريستالية', price: 45, icon: '🏺' }
     ],
+    occasions: ['wedding', 'romantic', 'gratitude', 'birthday'],
     rating: 4.9,
     reviewsCount: 38,
     allowCardMessage: true,
@@ -127,6 +214,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       { id: 'a1', name: 'شوكولاتة إضافية فاخرة', price: 65, icon: '🍫' },
       { id: 'a4', name: 'كرت إهداء بختم شمعي ذهبي', price: 20, icon: '💌' }
     ],
+    occasions: ['birthday', 'wedding', 'romantic', 'seasonal'],
     rating: 5.0,
     reviewsCount: 22,
     allowCardMessage: true,
@@ -158,6 +246,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a2', name: 'بالون هيليوم "يوم سعيد"', price: 30, icon: '🎈' }
     ],
+    occasions: ['birthday', 'gratitude', 'apology', 'seasonal'],
     rating: 4.8,
     reviewsCount: 19,
     allowCardMessage: true,
@@ -188,6 +277,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a5', name: 'إضافة اسم مطبوع بالذهب على البالون الكبير', price: 25, icon: '✨' }
     ],
+    occasions: ['birthday', 'graduation', 'newborn', 'seasonal'],
     rating: 4.7,
     reviewsCount: 14,
     allowCardMessage: true,
@@ -218,6 +308,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a6', name: 'عطر الفنادق لتعطير الزهور', price: 35, icon: '🌸' }
     ],
+    occasions: ['apology', 'gratitude', 'seasonal', 'wedding'],
     rating: 4.9,
     reviewsCount: 16,
     allowCardMessage: true,
@@ -249,6 +340,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a7', name: 'لوح أكريليك محفور باسم المولودة', price: 50, icon: '🎀' }
     ],
+    occasions: ['newborn', 'birthday', 'gratitude'],
     rating: 5.0,
     reviewsCount: 29,
     allowCardMessage: true,
@@ -279,6 +371,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a1', name: 'شوكولاتة بلجيكية (16 قطعة)', price: 75, icon: '🍫' }
     ],
+    occasions: ['wedding', 'apology', 'gratitude', 'romantic'],
     rating: 4.8,
     reviewsCount: 31,
     allowCardMessage: true,
@@ -309,6 +402,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a8', name: 'وشاح تخرج ساتان وردي مذهب', price: 45, icon: '🎓' }
     ],
+    occasions: ['graduation', 'gratitude', 'birthday'],
     rating: 4.9,
     reviewsCount: 11,
     allowCardMessage: true,
@@ -389,6 +483,17 @@ export const INITIAL_SETTINGS: StoreSettings = {
   announcementText: '🌸 متجر Flora Faten بمكة المكرمة - حي الحمراء | التجهيز والتوصيل خلال من 2 إلى 5 أيام | الدفع عند الاستلام فقط 💐',
   announcementActive: true,
   announcementSettings: DEFAULT_ANNOUNCEMENT_SETTINGS,
+  bannerSliderSettings: {
+    autoPlay: true,
+    intervalSeconds: 3, // Default 3s per request
+    pauseOnHover: true,
+    showArrows: true,
+    showDots: true,
+    transitionEffect: 'slide',
+    aspectRatioDesktop: '21/9',
+    aspectRatioMobile: '16/9',
+    containerMaxWidth: 'full'
+  },
   cities: [
     { name: 'مكة المكرمة - حي الحمراء (المنطقة الرئيسية)', fee: 15, active: true },
     { name: 'مكة المكرمة - حي الحمراء وأم الجود', fee: 15, active: true },
@@ -405,6 +510,69 @@ export const INITIAL_SETTINGS: StoreSettings = {
   ],
   updatedAt: new Date().toISOString()
 };
+
+export const DEFAULT_BANNER_SLIDER_SETTINGS: BannerSliderSettings = {
+  autoPlay: true,
+  intervalSeconds: 3,
+  pauseOnHover: true,
+  showArrows: true,
+  showDots: true,
+  transitionEffect: 'slide',
+  aspectRatioDesktop: '21/9',
+  aspectRatioMobile: '16/9',
+  containerMaxWidth: 'full'
+};
+
+export const INITIAL_BANNERS: Banner[] = [
+  {
+    id: 'banner-royal-pink',
+    title: 'تشكيلة الوردي والأبيض الملكية',
+    subtitle: 'أرقى باقات الجوري والبيوني الهولندي بتغليف شمعي فاخر وبطاقات إهداء مخصصة',
+    imageUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1920&q=85',
+    mobileImageUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=900&q=85',
+    altText: 'باقات الورد الملكية باللون الوردي والأبيض من متجر فلورا فاتن',
+    linkType: 'category',
+    linkValue: 'pink-white-bouquets',
+    buttonText: 'تسوق التشكيلة الملكية',
+    isActive: true,
+    order: 1,
+    objectFit: 'cover',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'banner-occasions-luxury',
+    title: 'تنسيقات المناسبات والشوكولاتة الفاخرة',
+    subtitle: 'هدايا استثنائية لحفلات التخرج، الزفاف، والمواليد مع قوالب الشوكولاتة البلجيكية',
+    imageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1920&q=85',
+    mobileImageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=900&q=85',
+    altText: 'بوكسات الهدايا وتنسيقات المناسبات السعيدة',
+    linkType: 'category',
+    linkValue: 'occasions-gifts',
+    buttonText: 'تصفح هدايا المناسبات',
+    isActive: true,
+    order: 2,
+    objectFit: 'cover',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'banner-balloons-vip',
+    title: 'بالونات الهيليوم وكروت الإهداء الشمعية',
+    subtitle: 'توزيعات حفلات وبالونات مخصصة بالاسم وتوصيل مجدول لأحياء مكة المكرمة',
+    imageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1920&q=85',
+    mobileImageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=900&q=85',
+    altText: 'بالونات الهيليوم وتوزيعات المناسبات في مكة',
+    linkType: 'category',
+    linkValue: 'balloons-party',
+    buttonText: 'اكتشف البالونات والتوزيعات',
+    isActive: true,
+    order: 3,
+    objectFit: 'cover',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 
 export const INITIAL_COUPONS: Coupon[] = [
   {

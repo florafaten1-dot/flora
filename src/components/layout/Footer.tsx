@@ -187,15 +187,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </div>
 
         {/* Bottom Bar & Payment Icons */}
-        <div className="pt-8 border-t border-[#F8DDE6] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#AD647D]">
+        <div className="pt-8 border-t border-[#F8DDE6] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#AD647D] text-center md:text-right">
           <div>
             جميع الحقوق محفوظة © {new Date().getFullYear()} متجر Flora Faten | فلورا فاتن
           </div>
 
           {/* Payment Badges */}
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-medium text-gray-500">طرق الدفع المتاحة:</span>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <span className="text-[11px] font-medium text-gray-500">طرق الدفع:</span>
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
               <span className="px-2 py-1 bg-white rounded-md border border-[#F8DDE6] text-[10px] font-bold text-blue-900 shadow-2xs">
                 مدى Mada
               </span>

@@ -34,7 +34,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     settings, 
     appliedCoupon, 
     applyCoupon, 
-    removeCoupon 
+    removeCoupon,
+    products,
+    addToCart 
   } = useStore();
 
   const [couponCodeInput, setCouponCodeInput] = useState('');
@@ -58,6 +60,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   }
 
   const finalSubtotal = Math.max(0, cartSubtotal - discountAmount);
+
+  // Complementary Upsell Items (Chocolates, Balloons, Vases not currently in cart)
+  const cartProductIds = cart.map(i => i.product.id);
+  const cartComplementaryItems = products
+    .filter(p => 
+      !cartProductIds.includes(p.id) &&
+      p.stock > 0 &&
+      (p.category === 'chocolates-treats' || p.category === 'balloons-party' || p.category === 'occasions-gifts')
+    )
+    .slice(0, 3);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,6 +231,51 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {cart.length > 0 && (
             <div className="p-4 sm:p-5 border-t border-[#F8DDE6] bg-[#FFF9FA] space-y-3">
               
+              {/* Complementary Upsell Carousel (Chocolates, Balloons, Cards) */}
+              {cartComplementaryItems.length > 0 && (
+                <div className="p-3 bg-white border border-[#F8DDE6] rounded-2xl space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between text-xs font-bold text-[#AD647D]">
+                    <span className="flex items-center gap-1.5">
+                      <Gift className="w-3.5 h-3.5 text-[#C9A46A]" />
+                      <span>أكمل هديتك بلمسات إضافية:</span>
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-normal">شوكولاتة وبالونات</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    {cartComplementaryItems.map((comp) => (
+                      <div 
+                        key={comp.id}
+                        className="min-w-[160px] max-w-[160px] bg-[#FFF9FA] border border-pink-100 rounded-xl p-2 flex flex-col justify-between shrink-0"
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <img 
+                            src={comp.image} 
+                            alt={comp.name} 
+                            className="w-9 h-9 rounded-lg object-cover border border-pink-100 shrink-0" 
+                          />
+                          <div className="min-w-0">
+                            <h6 className="text-[10px] font-bold text-[#2D141E] truncate">{comp.name}</h6>
+                            <span className="text-[10px] font-black text-[#AD647D]">
+                              {comp.salePrice ?? comp.price} ر.س
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => addToCart(comp, 1)}
+                          className="w-full py-1 px-2 rounded-lg bg-white border border-[#F8DDE6] hover:bg-[#AD647D] hover:text-white text-[#AD647D] text-[10px] font-bold transition flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                        >
+                          <Plus className="w-2.5 h-2.5" />
+                          <span>إضافة للسلة</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Coupon Input */}
               <div>
                 {appliedCoupon ? (

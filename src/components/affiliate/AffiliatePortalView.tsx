@@ -462,7 +462,7 @@ export const AffiliatePortalView: React.FC<AffiliatePortalViewProps> = ({ onNavi
 
   // 4. Approved Affiliate View -> Full Interactive Affiliate Portal
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 animate-fadeIn space-y-8">
+    <div className="w-full max-w-5xl mx-auto px-4 py-6 sm:py-8 animate-fadeIn space-y-6 sm:space-y-8 overflow-hidden">
       
       {/* Top Welcome Banner */}
       <div className="bg-gradient-to-r from-[#FFF0F4] via-white to-[#FFF0F4] border border-[#F8DDE6] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xs">

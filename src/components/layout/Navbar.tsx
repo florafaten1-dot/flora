@@ -13,16 +13,22 @@ import {
   Compass, 
   LogOut,
   Flower2,
-  Share2
+  Share2,
+  Globe,
+  Scale,
+  Gift,
+  ChevronDown
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { BrandLogo } from '../common/BrandLogo';
 import { AnnouncementBar } from './AnnouncementBar';
+import { STORE_OCCASIONS } from '../../lib/initialData';
 
 interface NavbarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
   onOpenCart: () => void;
+  onOpenCompare?: () => void;
   onSelectProduct: (productId: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -32,6 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
   setCurrentTab,
   onOpenCart,
+  onOpenCompare,
   onSelectProduct,
   searchQuery,
   setSearchQuery
@@ -40,6 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     settings, 
     cartTotalCount, 
     wishlist, 
+    compareList,
     currentUser, 
     isAdmin, 
     isStaff, 
@@ -48,11 +56,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     setDemoAdminMode, 
     logout,
     products,
-    categories
+    categories,
+    language,
+    toggleLanguage
   } = useStore();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [occasionsDropdownOpen, setOccasionsDropdownOpen] = useState(false);
 
   // Filter products for live search preview
   const searchResults = searchQuery.trim() 
@@ -64,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     : [];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#F8DDE6] shadow-xs">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#F8DDE6] shadow-xs w-full max-w-full overflow-x-clip">
       {/* Top Promotional Announcement Bar */}
       <AnnouncementBar 
         onNavigate={setCurrentTab}
@@ -72,13 +83,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       />
 
       {/* Main Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 w-full max-w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4 w-full min-w-0">
           
           {/* Mobile menu trigger */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-[#AD647D] hover:bg-[#F8DDE6]/40 transition shrink-0"
+            className="md:hidden p-2 rounded-xl text-[#AD647D] hover:bg-[#F8DDE6]/40 transition shrink-0 cursor-pointer"
             aria-label="القائمة الرئيسية"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -87,9 +98,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Brand Identity */}
           <div 
             onClick={() => { setCurrentTab('home'); }} 
-            className="cursor-pointer group select-none min-w-0 shrink"
+            className="cursor-pointer group select-none min-w-0 shrink flex items-center"
           >
-            <BrandLogo textSize="xl" imageClassName="w-9 h-9 sm:w-11 sm:h-11" />
+            <BrandLogo textSize="lg" imageClassName="w-8 h-8 sm:w-10 sm:h-10" />
           </div>
 
           {/* Desktop Search Bar */}
@@ -163,22 +174,33 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Action Icons */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Action Icons - Single Row on Mobile & Desktop */}
+          <div className="flex items-center gap-1 sm:gap-2 lg:gap-2.5 shrink-0">
+            {/* Language Switcher */}
+            <button
+              onClick={toggleLanguage}
+              className="px-1.5 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold border border-[#F8DDE6] text-[#AD647D] hover:bg-[#FFF0F4] transition flex items-center gap-1 shrink-0 cursor-pointer"
+              title={language === 'ar' ? 'Switch to English' : 'التحويل للغة العربية'}
+              aria-label="تبديل اللغة"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#C9A46A]" />
+              <span className="font-extrabold uppercase">{language === 'ar' ? 'EN' : 'عربي'}</span>
+            </button>
+
             {/* Search Trigger for Mobile & Tablet */}
             <button
               onClick={() => setShowSearchModal(true)}
-              className="lg:hidden p-2 sm:p-2.5 rounded-full text-[#AD647D] hover:bg-[#F8DDE6]/40 transition"
+              className="lg:hidden p-1.5 sm:p-2 rounded-full text-[#AD647D] hover:bg-[#F8DDE6]/40 transition shrink-0 cursor-pointer"
               aria-label="بحث في المنتجات"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Tracking shortcut - Desktop only */}
             <button
               onClick={() => setCurrentTab('tracking')}
               title="تتبع طلبك"
-              className={`hidden md:flex p-2.5 rounded-full transition items-center gap-1.5 text-xs font-medium ${
+              className={`hidden md:flex p-2 rounded-full transition items-center gap-1.5 text-xs font-medium cursor-pointer ${
                 currentTab === 'tracking'
                   ? 'bg-[#AD647D] text-white shadow-xs'
                   : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'
@@ -188,34 +210,64 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>تتبع الطلب</span>
             </button>
 
-            {/* Wishlist - Desktop/Tablet */}
+            {/* Wishlist - Now available on Mobile & Desktop */}
             <button
               onClick={() => setCurrentTab('wishlist')}
-              title="قائمة الرغبات"
-              className={`hidden sm:flex relative p-2 sm:p-2.5 rounded-full transition ${
+              title="قائمة الرغبات والمفضلة"
+              className={`relative p-1.5 sm:p-2 rounded-full transition shrink-0 cursor-pointer ${
                 currentTab === 'wishlist'
                   ? 'bg-[#AD647D] text-white'
                   : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'
               }`}
+              aria-label="المفضلة"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
               {wishlist.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#C9A46A] text-white rounded-full text-[9px] font-bold flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#C9A46A] text-white rounded-full text-[8px] sm:text-[9px] font-bold flex items-center justify-center border border-white">
                   {wishlist.length}
                 </span>
               )}
             </button>
 
+            {/* Compare Button (When items added to comparison) */}
+            {compareList.length > 0 && (
+              <button
+                onClick={onOpenCompare}
+                title="مقارنة الباقات المختارة"
+                className="relative p-1.5 sm:p-2 rounded-full transition shrink-0 cursor-pointer text-[#AD647D] hover:bg-[#F8DDE6]/40"
+                aria-label="مقارنة الباقات"
+              >
+                <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-[#C9A46A]" />
+                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#C9A46A] text-white rounded-full text-[8px] sm:text-[9px] font-bold flex items-center justify-center border border-white">
+                  {compareList.length}
+                </span>
+              </button>
+            )}
+
+            {/* User Account Button - Now available on Mobile & Desktop */}
+            <button
+              onClick={() => setCurrentTab('account')}
+              title="حسابي وطلباتي"
+              className={`p-1.5 sm:p-2 rounded-full transition shrink-0 cursor-pointer ${
+                currentTab === 'account'
+                  ? 'bg-[#AD647D] text-white'
+                  : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'
+              }`}
+              aria-label="حساب العميل"
+            >
+              <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
             {/* Cart Button - Always visible & prominent */}
             <button
               onClick={onOpenCart}
-              className="relative bg-gradient-to-r from-[#E7A0B4] to-[#AD647D] text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full flex items-center gap-1.5 sm:gap-2 shadow-xs hover:shadow-md transition active:scale-95 shrink-0"
+              className="relative bg-gradient-to-r from-[#E7A0B4] to-[#AD647D] text-white p-1.5 sm:px-3 sm:py-1.5 rounded-full flex items-center gap-1 sm:gap-2 shadow-xs hover:shadow-md transition active:scale-95 shrink-0 cursor-pointer"
               aria-label="سلة المشتريات"
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="text-xs font-bold hidden md:inline">السلة</span>
               {cartTotalCount > 0 && (
-                <span className="bg-white text-[#AD647D] text-[10px] sm:text-[11px] font-black rounded-full px-1.5 py-0.2 min-w-4 text-center">
+                <span className="bg-white text-[#AD647D] text-[9px] sm:text-[11px] font-black rounded-full px-1.5 py-0.2 min-w-3.5 text-center">
                   {cartTotalCount}
                 </span>
               )}
@@ -225,7 +277,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isAffiliate && (
               <button
                 onClick={() => setCurrentTab('affiliate')}
-                className={`hidden md:flex px-3 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition ${
+                className={`hidden md:flex px-3 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition cursor-pointer ${
                   currentTab === 'affiliate'
                     ? 'bg-[#AD647D] text-white border-[#AD647D] shadow-xs'
                     : 'bg-[#FFF0F4] text-[#AD647D] border-[#F8DDE6] hover:bg-[#AD647D] hover:text-white'
@@ -241,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isStaff ? (
               <button
                 onClick={() => setCurrentTab('admin')}
-                className={`hidden md:flex px-3 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition ${
+                className={`hidden md:flex px-3 py-1.5 rounded-full text-xs font-bold items-center gap-1.5 border transition cursor-pointer ${
                   currentTab === 'admin'
                     ? 'bg-[#C9A46A] text-white border-[#C9A46A] shadow-xs'
                     : 'bg-[#FFF8E7] text-[#9A7432] border-[#C9A46A] hover:bg-[#C9A46A] hover:text-white'
@@ -251,19 +303,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>لوحة الإدارة</span>
               </button>
             ) : null}
-
-            {/* User Account Button - Desktop only */}
-            <button
-              onClick={() => setCurrentTab('account')}
-              title="حسابي"
-              className={`hidden md:flex p-2.5 rounded-full transition ${
-                currentTab === 'account'
-                  ? 'bg-[#AD647D] text-white'
-                  : 'text-[#AD647D] hover:bg-[#F8DDE6]/40'
-              }`}
-            >
-              <UserIcon className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
@@ -290,6 +329,56 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             جميع الباقات والمنتجات
           </button>
+
+          {/* Occasions Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setOccasionsDropdownOpen(true)}
+            onMouseLeave={() => setOccasionsDropdownOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setOccasionsDropdownOpen(prev => !prev)}
+              className={`px-3 py-1.5 rounded-full transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                currentTab.startsWith('occ_')
+                  ? 'bg-[#E7A0B4] text-white font-bold'
+                  : 'hover:text-[#AD647D] hover:bg-[#FFF0F4]'
+              }`}
+            >
+              <Gift className="w-3.5 h-3.5 text-[#C9A46A]" />
+              <span>هدايا حسب المناسبة</span>
+              <ChevronDown className="w-3 h-3 transition-transform" />
+            </button>
+
+            {occasionsDropdownOpen && (
+              <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-[#F8DDE6] py-2 z-50 animate-fadeIn">
+                <div className="px-3 py-1 text-[10px] font-bold text-[#AD647D] uppercase tracking-wider border-b border-pink-50">
+                  اختر المناسبة
+                </div>
+                <div className="py-1">
+                  {STORE_OCCASIONS.map((occ) => (
+                    <button
+                      key={occ.id}
+                      type="button"
+                      onClick={() => {
+                        setCurrentTab(`occ_${occ.id}`);
+                        setOccasionsDropdownOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-right hover:bg-[#FFF5F7] flex items-center justify-between text-xs text-[#2D141E] hover:text-[#AD647D] transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{occ.emoji}</span>
+                        <span className="font-medium">{occ.name}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-bold">
+                        {products.filter(p => p.occasions && p.occasions.includes(occ.id)).length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {categories.slice(0, 5).map((cat) => (
             <button
@@ -346,15 +435,15 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-[#F8DDE6] px-4 py-4 space-y-2 animate-fadeIn shadow-lg">
-          <div className="flex items-center gap-2 pb-3 border-b border-pink-100">
+          <div className="relative pb-3 border-b border-pink-100">
             <input
               type="text"
               placeholder="ابحث عن المنتجات..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#FFF9FA] border border-[#F8DDE6] rounded-xl py-2 pr-9 pl-3 text-sm"
+              className="w-full bg-[#FFF9FA] border border-[#F8DDE6] rounded-xl py-2 pr-9 pl-3 text-sm focus:outline-hidden"
             />
-            <Search className="w-4 h-4 text-[#AD647D] absolute right-7" />
+            <Search className="w-4 h-4 text-[#AD647D] absolute right-3 top-2.5 pointer-events-none" />
           </div>
 
           <div className="grid grid-cols-2 gap-2 pt-2">
@@ -392,6 +481,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                 • {cat.name}
               </button>
             ))}
+          </div>
+
+          {/* Occasions Section in Mobile Drawer */}
+          <div className="text-[11px] font-bold text-[#AD647D] pt-2 px-1 flex items-center gap-1">
+            <Gift className="w-3.5 h-3.5 text-[#C9A46A]" />
+            <span>الهدايا حسب المناسبة</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {STORE_OCCASIONS.map((occ) => {
+              const count = products.filter(p => p.occasions && p.occasions.includes(occ.id)).length;
+              return (
+                <button
+                  key={occ.id}
+                  type="button"
+                  onClick={() => {
+                    setCurrentTab(`occ_${occ.id}`);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`p-2 text-right rounded-xl text-xs flex items-center justify-between transition cursor-pointer ${
+                    currentTab === `occ_${occ.id}` 
+                      ? 'bg-[#F8DDE6] text-[#AD647D] font-bold' 
+                      : 'bg-[#FFF9FA] text-[#4A2030] hover:bg-pink-50'
+                  }`}
+                >
+                  <span className="truncate">{occ.emoji} {occ.name}</span>
+                  <span className="text-[10px] text-gray-400 font-normal">({count})</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="pt-3 border-t border-pink-100 flex flex-col gap-2">

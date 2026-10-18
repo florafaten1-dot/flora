@@ -63,7 +63,16 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           <span 
             className={`${textSizeClasses[textSize]} font-bold font-serif-lux tracking-tight text-[#AD647D] transition leading-tight truncate`}
           >
-            {settings.storeNameEn || 'Flora Faten'}
+            {settings.storeNameEn && settings.storeNameEn.includes('Flora Faten') ? (
+              <>
+                <span>Flora Faten</span>
+                <span className="hidden lg:inline font-normal text-xs text-[#AD647D]/75 mr-1.5 font-sans">
+                  {settings.storeNameEn.replace('Flora Faten', '').replace(/^[ -]+/, '')}
+                </span>
+              </>
+            ) : (
+              settings.storeNameEn || 'Flora Faten'
+            )}
           </span>
           {subtitle && (
             <span className="text-[10px] sm:text-xs text-[#C9A46A] font-semibold tracking-wider sm:tracking-widest flex items-center gap-1 truncate">

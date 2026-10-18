@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   onAuthStateChanged, 
   signInWithPopup, 
@@ -48,7 +48,9 @@ import {
   ProductReview,
   AffiliateProfile,
   PayoutRequest,
-  AffiliateTransaction
+  AffiliateTransaction,
+  Banner,
+  BannerSliderSettings
 } from '../types';
 import { 
   INITIAL_CATEGORIES, 
@@ -56,8 +58,11 @@ import {
   INITIAL_SETTINGS, 
   INITIAL_COUPONS,
   INITIAL_REVIEWS,
-  DEFAULT_ANNOUNCEMENT_SETTINGS
+  DEFAULT_ANNOUNCEMENT_SETTINGS,
+  INITIAL_BANNERS,
+  DEFAULT_BANNER_SLIDER_SETTINGS
 } from '../lib/initialData';
+import { isValidMakkahDeliveryDate } from '../lib/dateUtils';
 
 // Initial sample affiliates to seed if empty
 const INITIAL_AFFILIATES: AffiliateProfile[] = [
@@ -169,11 +174,23 @@ interface StoreContextType {
   allUsers: UserProfile[];
   updateUserRole: (uid: string, role: UserRole, status?: 'active' | 'suspended') => Promise<void>;
 
-  // Catalog
+  // Catalog & Banners
   products: Product[];
   categories: Category[];
-  banners: any[];
+  banners: Banner[];
+  activeBanners: Banner[];
   settings: StoreSettings;
+  bannerSliderSettings: BannerSliderSettings;
+  addBanner: (bannerData: Omit<Banner, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
+  updateBanner: (id: string, updates: Partial<Banner>) => Promise<void>;
+  deleteBanner: (id: string) => Promise<void>;
+  reorderBanners: (orderedBanners: Banner[]) => Promise<void>;
+  uploadBannerImage: (file: File) => Promise<string>;
+  updateBannerSliderSettings: (settings: Partial<BannerSliderSettings>) => Promise<void>;
+
+  // Language
+  language: 'ar' | 'en';
+  toggleLanguage: () => void;
   coupons: Coupon[];
   orders: Order[];
   reviews: ProductReview[];
@@ -206,6 +223,17 @@ interface StoreContextType {
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
+  clearWishlist: () => Promise<void>;
+
+  // Product Comparison (Max 3 items)
+  compareList: string[];
+  addToCompare: (productId: string) => { success: boolean; message: string };
+  removeFromCompare: (productId: string) => void;
+  clearCompare: () => void;
+  isInCompare: (productId: string) => boolean;
+
+  // Best Sellers Helper
+  getBestSellerProducts: (limit?: number) => Product[];
 
   // Checkout & Coupon & Affiliation
   appliedCoupon: Coupon | null;
@@ -257,6 +285,7 @@ interface StoreContextType {
   removeStoreLogo: () => Promise<void>;
   saveCoupon: (coupon: Partial<Coupon> & { code: string; discountValue: number }) => Promise<void>;
   deleteCoupon: (couponId: string) => Promise<void>;
+  deleteProductReview: (reviewId: string) => Promise<void>;
   resetToInitialData: () => Promise<void>;
 }
 
@@ -273,7 +302,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Firestore Real-time Collections
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [banners, setBanners] = useState<any[]>([]);
+  const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
+  const [language, setLanguage] = useState<'ar' | 'en'>(() => {
+    try {
+      return (localStorage.getItem('flora_lang') as 'ar' | 'en') || 'ar';
+    } catch {
+      return 'ar';
+    }
+  });
+
+  const toggleLanguage = () => {
+    const next = language === 'ar' ? 'en' : 'ar';
+    setLanguage(next);
+    try {
+      localStorage.setItem('flora_lang', next);
+    } catch {}
+  };
   const [settings, setSettings] = useState<StoreSettings>(INITIAL_SETTINGS);
   const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -311,6 +355,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
+  const [compareList, setCompareList] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('florafaten_compare');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
   useEffect(() => {
@@ -328,6 +381,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error(e);
     }
   }, [wishlist]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('florafaten_compare', JSON.stringify(compareList));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [compareList]);
 
   // Check URL for referral parameter on mount: ?ref=CODE or ?aff=CODE
   useEffect(() => {
@@ -366,6 +427,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
           if (snap.exists()) {
             const existing = snap.data() as UserProfile;
+            // Sync / merge wishlist between guest and user profile
+            if (existing.wishlist && Array.isArray(existing.wishlist)) {
+              setWishlist(prev => {
+                const merged = Array.from(new Set([...existing.wishlist!, ...prev]));
+                try {
+                  localStorage.setItem('florafaten_wishlist', JSON.stringify(merged));
+                } catch (e) {}
+                if (merged.length !== existing.wishlist!.length) {
+                  updateDoc(userDocRef, { wishlist: merged }).catch(console.warn);
+                }
+                return merged;
+              });
+            } else {
+              // If user has no saved wishlist but guest has items, save them to profile
+              setWishlist(prev => {
+                if (prev.length > 0) {
+                  updateDoc(userDocRef, { wishlist: prev }).catch(console.warn);
+                }
+                return prev;
+              });
+            }
+
             // Ensure super admin retains owner role
             if (isSuper && existing.role !== 'owner') {
               const updated: UserProfile = { ...existing, role: 'owner' };
@@ -376,6 +459,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
           } else {
             // Create user profile
+            const currentGuestWishlist = (() => {
+              try {
+                const s = localStorage.getItem('florafaten_wishlist');
+                return s ? JSON.parse(s) : [];
+              } catch {
+                return [];
+              }
+            })();
+
             const newProfile: UserProfile = {
               uid: user.uid,
               email: user.email || '',
@@ -384,6 +476,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               role: isSuper ? 'owner' : 'customer',
               status: 'active',
               emailVerified: user.emailVerified,
+              wishlist: currentGuestWishlist,
               createdAt: new Date().toISOString()
             };
             await setDoc(userDocRef, newProfile);
@@ -570,6 +663,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }, (err) => console.warn('Reviews snapshot:', err));
         unsubs.push(unsubReviews);
+
+        // 10. Banners collection (centralized live stream)
+        const bannersRef = collection(db, 'banners');
+        const unsubBanners = onSnapshot(bannersRef, async (querySnap) => {
+          if (!querySnap.empty) {
+            const bList: Banner[] = [];
+            querySnap.forEach((d) => bList.push({ ...d.data(), id: d.id } as Banner));
+            bList.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            setBanners(bList);
+          } else {
+            for (const b of INITIAL_BANNERS) {
+              setDoc(doc(db, 'banners', b.id), b).catch(err => console.warn('Banner seed:', err));
+            }
+            setBanners(INITIAL_BANNERS);
+          }
+        }, (err) => console.warn('Banners snapshot:', err));
+        unsubs.push(unsubBanners);
 
       } catch (err) {
         console.error('Firestore initialization error:', err);
@@ -821,16 +931,110 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const cartTotalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
 
-  // Wishlist
-  const toggleWishlist = (productId: string) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId) 
-        : [...prev, productId]
-    );
+  // Wishlist with Guest & Firebase User Synchronization
+  const toggleWishlist = async (productId: string) => {
+    const nextWishlist = wishlist.includes(productId)
+      ? wishlist.filter(id => id !== productId)
+      : [...wishlist, productId];
+
+    setWishlist(nextWishlist);
+    try {
+      localStorage.setItem('florafaten_wishlist', JSON.stringify(nextWishlist));
+    } catch (e) {
+      console.warn('Local storage error for wishlist', e);
+    }
+
+    if (currentUser?.uid) {
+      try {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userDocRef, {
+          wishlist: nextWishlist
+        });
+      } catch (err) {
+        console.warn('Could not sync wishlist to Firestore for user', err);
+      }
+    }
   };
 
   const isInWishlist = (productId: string) => wishlist.includes(productId);
+
+  const clearWishlist = async () => {
+    setWishlist([]);
+    try {
+      localStorage.removeItem('florafaten_wishlist');
+    } catch (e) {}
+
+    if (currentUser?.uid) {
+      try {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userDocRef, {
+          wishlist: []
+        });
+      } catch (err) {
+        console.warn('Could not clear wishlist on Firestore:', err);
+      }
+    }
+  };
+
+  // Product Comparison System (Maximum 3 items)
+  const addToCompare = (productId: string): { success: boolean; message: string } => {
+    if (compareList.includes(productId)) {
+      return { success: false, message: 'المنتج مضاف بالفعل إلى المقارنة' };
+    }
+    if (compareList.length >= 3) {
+      return { success: false, message: 'يمكنك مقارنة 3 باقات كحد أقصى في المرة الواحدة' };
+    }
+    const updated = [...compareList, productId];
+    setCompareList(updated);
+    try {
+      localStorage.setItem('florafaten_compare', JSON.stringify(updated));
+    } catch (e) {}
+    return { success: true, message: 'تمت إضافة الباقة إلى جدول المقارنة بنجاح ⚖️' };
+  };
+
+  const removeFromCompare = (productId: string) => {
+    const updated = compareList.filter(id => id !== productId);
+    setCompareList(updated);
+    try {
+      localStorage.setItem('florafaten_compare', JSON.stringify(updated));
+    } catch (e) {}
+  };
+
+  const clearCompare = () => {
+    setCompareList([]);
+    try {
+      localStorage.removeItem('florafaten_compare');
+    } catch (e) {}
+  };
+
+  const isInCompare = (productId: string) => compareList.includes(productId);
+
+  // Best Sellers Helper: Computes real best sellers from completed orders without cancelled ones
+  const getBestSellerProducts = useCallback((limit: number = 6): Product[] => {
+    const completedOrders = orders.filter(o => o.status === 'completed');
+    if (completedOrders.length > 0) {
+      const counts: Record<string, number> = {};
+      for (const ord of completedOrders) {
+        if (ord.items && Array.isArray(ord.items)) {
+          for (const item of ord.items) {
+            counts[item.productId] = (counts[item.productId] || 0) + item.quantity;
+          }
+        }
+      }
+      const sortedIds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+      const matched = sortedIds
+        .map(id => products.find(p => p.id === id))
+        .filter((p): p is Product => Boolean(p));
+
+      if (matched.length >= 2) {
+        return matched.slice(0, limit);
+      }
+    }
+
+    // High quality fallback: curated items flagged as isBestSeller or featured by boutique management
+    const curated = products.filter(p => p.isBestSeller || p.featured);
+    return (curated.length > 0 ? curated : products).slice(0, limit);
+  }, [orders, products]);
 
   // Coupons & Affiliate attribution in cart
   const applyCoupon = (code: string) => {
@@ -881,8 +1085,70 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setAppliedAffiliate(null);
   };
 
-  // Order Creation (persisted in Firestore with Affiliate Attribution)
+  // Order Creation (persisted in Firestore with Affiliate Attribution and strict verification)
   const createOrder = async (orderPayload: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>): Promise<Order> => {
+    // 1. Validate delivery date in Makkah timezone (2 to 5 days strictly)
+    if (!orderPayload.deliveryDate || !isValidMakkahDeliveryDate(orderPayload.deliveryDate)) {
+      throw new Error('تاريخ التوصيل المختار غير صالح. وفق سياسة المتجر، يجب أن يكون موعد التوصيل بين يومين إلى 5 أيام من تاريخ الطلب بتوقيت مكة المكرمة.');
+    }
+
+    // 2. Validate items presence
+    if (!orderPayload.items || orderPayload.items.length === 0) {
+      throw new Error('سلة المشتريات فارغة. يرجى إضافة باقات إلى السلة قبل إتمام الطلب.');
+    }
+
+    // 3. Re-verify prices and stock against live store catalog
+    let verifiedSubtotal = 0;
+    const verifiedItems = [];
+
+    for (const item of orderPayload.items) {
+      const realProduct = products.find(p => p.id === item.productId);
+      if (!realProduct) {
+        throw new Error(`الباقة أو المنتج "${item.name}" لم يعد متاحاً في المتجر.`);
+      }
+      if (realProduct.stock !== undefined && realProduct.stock <= 0) {
+        throw new Error(`عذراً، نفدت كمية المنتج "${realProduct.name}".`);
+      }
+      const basePrice = realProduct.salePrice ?? realProduct.price;
+      const sizeDelta = item.selectedSize?.priceDelta || 0;
+      const addonsDelta = (item.selectedAddons || []).reduce((acc, a) => acc + (a.price || 0), 0);
+      const unitPrice = basePrice + sizeDelta + addonsDelta;
+      const itemTotal = unitPrice * item.quantity;
+      verifiedSubtotal += itemTotal;
+
+      verifiedItems.push({
+        ...item,
+        name: realProduct.name,
+        image: realProduct.image,
+        unitPrice,
+        itemTotal
+      });
+    }
+
+    // 4. Delivery fee calculation from city settings
+    const selectedCity = (settings.cities || []).find(c => c.name === orderPayload.deliveryCity);
+    const rawDeliveryFee = selectedCity?.fee ?? settings.deliveryFeeDefault ?? 25;
+    const isFreeDelivery = verifiedSubtotal >= (settings.freeDeliveryThreshold || 350);
+    const verifiedDeliveryFee = isFreeDelivery ? 0 : rawDeliveryFee;
+
+    // 5. Discount calculation
+    let verifiedDiscount = 0;
+    if (orderPayload.couponCode && appliedCoupon && appliedCoupon.code.toUpperCase() === orderPayload.couponCode.toUpperCase()) {
+      if (verifiedSubtotal >= appliedCoupon.minOrderAmount) {
+        if (appliedCoupon.discountType === 'percentage') {
+          verifiedDiscount = Math.round((verifiedSubtotal * appliedCoupon.discountValue) / 100);
+        } else {
+          verifiedDiscount = appliedCoupon.discountValue;
+        }
+      }
+    } else if (appliedAffiliate) {
+      const pct = appliedAffiliate.customerDiscountPercent || 10;
+      verifiedDiscount = Math.round((verifiedSubtotal * pct) / 100);
+    }
+
+    const verifiedTax = Math.round((verifiedSubtotal - verifiedDiscount) * 0.15 * 100) / 100;
+    const verifiedTotal = Math.max(0, verifiedSubtotal - verifiedDiscount + verifiedDeliveryFee);
+
     const timestamp = new Date().toISOString();
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `FF-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${randomSuffix}`;
@@ -904,14 +1170,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       affiliateCode = affiliateForOrder.referralCode;
       affiliateId = affiliateForOrder.id;
       if (affiliateForOrder.commissionType === 'percentage') {
-        calculatedCommission = Math.round((orderPayload.subtotal * (affiliateForOrder.commissionValue || 10)) / 100);
+        calculatedCommission = Math.round((verifiedSubtotal * (affiliateForOrder.commissionValue || 10)) / 100);
       } else {
         calculatedCommission = affiliateForOrder.commissionValue || 15;
       }
     }
 
+    // Cash on Delivery ONLY per boutique policy
     const newOrder: Order = {
       ...orderPayload,
+      items: verifiedItems,
+      subtotal: verifiedSubtotal,
+      deliveryFee: verifiedDeliveryFee,
+      discountAmount: verifiedDiscount,
+      tax: verifiedTax,
+      total: verifiedTotal,
+      status: 'new',
+      paymentMethod: 'cod',
+      paymentStatus: 'unpaid',
       id: orderId,
       orderNumber,
       affiliateCode,
@@ -1393,6 +1669,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const reviewId = `rev_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const cleanRating = Math.max(1, Math.min(5, Math.round(reviewData.rating)));
+
+      // Check whether user or email has an actual completed order containing this product
+      const targetEmail = (reviewData.userEmail || currentUser?.email || '').toLowerCase().trim();
+      const hasCompletedPurchase = orders.some(ord => {
+        if (ord.status !== 'completed') return false;
+        const matchesUser = Boolean(
+          (currentUser?.uid && ord.userId === currentUser.uid) ||
+          (targetEmail && ord.customerEmail && ord.customerEmail.toLowerCase().trim() === targetEmail)
+        );
+        const hasItem = ord.items && Array.isArray(ord.items) && ord.items.some(item => item.productId === reviewData.productId);
+        return matchesUser && hasItem;
+      });
+
       const newReview: ProductReview = {
         id: reviewId,
         productId: reviewData.productId,
@@ -1402,7 +1691,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         rating: cleanRating,
         comment: reviewData.comment.trim(),
         createdAt: new Date().toISOString(),
-        verifiedPurchase: true
+        verifiedPurchase: hasCompletedPurchase
       };
 
       // 1. Save review to Firestore
@@ -1443,6 +1732,161 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const deleteProductReview = async (reviewId: string) => {
+    try {
+      const targetReview = reviews.find(r => r.id === reviewId);
+      await deleteDoc(doc(db, 'reviews', reviewId));
+
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+
+      if (targetReview) {
+        const remainingForProduct = reviews.filter(r => r.productId === targetReview.productId && r.id !== reviewId);
+        const newCount = remainingForProduct.length;
+        const newAverage = newCount > 0 
+          ? Number((remainingForProduct.reduce((sum, r) => sum + r.rating, 0) / newCount).toFixed(1))
+          : 5.0;
+
+        const productDocRef = doc(db, 'products', targetReview.productId);
+        await updateDoc(productDocRef, {
+          rating: newAverage,
+          reviewsCount: newCount,
+          updatedAt: new Date().toISOString()
+        }).catch(e => console.warn('Product doc update error on deleteReview', e));
+
+        setProducts(prev => prev.map(p => {
+          if (p.id === targetReview.productId) {
+            return { ...p, rating: newAverage, reviewsCount: newCount };
+          }
+          return p;
+        }));
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `reviews/${reviewId}`);
+      throw error;
+    }
+  };
+
+  // Active Banners (scheduled + active)
+  const activeBanners = React.useMemo(() => {
+    const now = new Date();
+    return banners
+      .filter((b) => {
+        if (!b.isActive) return false;
+        if (b.startDate && new Date(b.startDate) > now) return false;
+        if (b.endDate && new Date(b.endDate) < now) return false;
+        return true;
+      })
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, [banners]);
+
+  const bannerSliderSettings: BannerSliderSettings = React.useMemo(() => {
+    return {
+      ...DEFAULT_BANNER_SLIDER_SETTINGS,
+      ...(settings.bannerSliderSettings || {})
+    };
+  }, [settings.bannerSliderSettings]);
+
+  const addBanner = async (bannerData: Omit<Banner, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+    try {
+      const bannerId = `banner_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const now = new Date().toISOString();
+      const newBanner: Banner = {
+        ...bannerData,
+        id: bannerId,
+        order: bannerData.order ?? (banners.length + 1),
+        createdAt: now,
+        updatedAt: now
+      };
+      await setDoc(doc(db, 'banners', bannerId), newBanner);
+      setBanners(prev => [...prev, newBanner].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
+      return bannerId;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'banners');
+      throw error;
+    }
+  };
+
+  const updateBanner = async (id: string, updates: Partial<Banner>): Promise<void> => {
+    try {
+      const now = new Date().toISOString();
+      await updateDoc(doc(db, 'banners', id), {
+        ...updates,
+        updatedAt: now
+      });
+      setBanners(prev => prev.map(b => b.id === id ? { ...b, ...updates, updatedAt: now } : b));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `banners/${id}`);
+      throw error;
+    }
+  };
+
+  const deleteBanner = async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(db, 'banners', id));
+      setBanners(prev => prev.filter(b => b.id !== id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `banners/${id}`);
+      throw error;
+    }
+  };
+
+  const reorderBanners = async (orderedBanners: Banner[]): Promise<void> => {
+    try {
+      const now = new Date().toISOString();
+      const promises = orderedBanners.map((b, idx) => {
+        return updateDoc(doc(db, 'banners', b.id), {
+          order: idx + 1,
+          updatedAt: now
+        });
+      });
+      await Promise.all(promises);
+      setBanners(orderedBanners.map((b, idx) => ({ ...b, order: idx + 1 })));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'banners/reorder');
+      throw error;
+    }
+  };
+
+  const uploadBannerImage = async (file: File): Promise<string> => {
+    try {
+      const extension = file.name.split('.').pop() || 'jpg';
+      const filename = `banners/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
+      const fileRef = storageRef(storage, filename);
+      const snapshot = await uploadBytes(fileRef, file, {
+        contentType: file.type || 'image/jpeg'
+      });
+      return await getDownloadURL(snapshot.ref);
+    } catch (storageError) {
+      console.warn('Storage upload fallback to high-res data URL:', storageError);
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const updateBannerSliderSettings = async (sliderSettings: Partial<BannerSliderSettings>): Promise<void> => {
+    try {
+      const merged: BannerSliderSettings = {
+        ...DEFAULT_BANNER_SLIDER_SETTINGS,
+        ...(settings.bannerSliderSettings || {}),
+        ...sliderSettings
+      };
+      const newSettings: StoreSettings = {
+        ...settings,
+        bannerSliderSettings: merged,
+        updatedAt: new Date().toISOString()
+      };
+      await saveSettings(newSettings);
+      setSettings(newSettings);
+    } catch (error) {
+      console.error('Failed to update banner slider settings:', error);
+      throw error;
+    }
+  };
+
   // Re-seed all initial demo data to Firestore
   const resetToInitialData = async () => {
     try {
@@ -1461,6 +1905,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       for (const pay of INITIAL_PAYOUTS) {
         await setDoc(doc(db, 'payouts', pay.id), pay);
+      }
+      for (const b of INITIAL_BANNERS) {
+        await setDoc(doc(db, 'banners', b.id), b);
       }
     } catch (error) {
       console.error('Reset initial data error:', error);
@@ -1490,7 +1937,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       products,
       categories,
       banners,
+      activeBanners,
       settings,
+      bannerSliderSettings,
+      addBanner,
+      updateBanner,
+      deleteBanner,
+      reorderBanners,
+      uploadBannerImage,
+      updateBannerSliderSettings,
+      language,
+      toggleLanguage,
       coupons,
       orders,
       loadingData,
@@ -1504,6 +1961,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       wishlist,
       toggleWishlist,
       isInWishlist,
+      clearWishlist,
+      compareList,
+      addToCompare,
+      removeFromCompare,
+      clearCompare,
+      isInCompare,
+      getBestSellerProducts,
       appliedCoupon,
       appliedAffiliate,
       activeReferralCode,
@@ -1533,6 +1997,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       reviews,
       getProductReviews,
       addProductReview,
+      deleteProductReview,
       resetToInitialData
     }}>
       {children}

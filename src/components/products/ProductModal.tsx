@@ -80,6 +80,24 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     setActiveTab('details');
   }, [liveProduct.id]);
 
+  // Complementary suggested items (Cross-sell: chocolates, balloons, teddy, complementary gifts)
+  const [addedCompId, setAddedCompId] = useState<string | null>(null);
+  const suggestedComplementaryProducts = React.useMemo(() => {
+    return products
+      .filter(p => 
+        p.id !== liveProduct.id && 
+        p.stock > 0 &&
+        (p.category === 'chocolates-treats' || p.category === 'balloons-party' || p.category === 'occasions-gifts' || p.category === liveProduct.category)
+      )
+      .slice(0, 2);
+  }, [products, liveProduct]);
+
+  const handleAddComplementary = (compProduct: Product) => {
+    addToCart(compProduct, 1);
+    setAddedCompId(compProduct.id);
+    setTimeout(() => setAddedCompId(null), 2500);
+  };
+
   // Review Form State
   const [ratingInput, setRatingInput] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number>(0);
@@ -88,6 +106,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
   const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState<boolean>(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | 'all'>('all');
+
+  // Filtered reviews based on active star filter
+  const displayedReviews = React.useMemo(() => {
+    if (selectedRatingFilter === 'all') return productReviews;
+    return productReviews.filter(r => r.rating === selectedRatingFilter);
+  }, [productReviews, selectedRatingFilter]);
 
   // Pre-fill user name if logged in
   useEffect(() => {
@@ -299,7 +324,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
 
         {/* Right Column: Tab Navigation & Content */}
-        <div className="w-full md:w-1/2 p-6 overflow-y-auto flex flex-col justify-between space-y-5">
+        <div className="w-full md:w-1/2 p-4 sm:p-6 overflow-y-auto flex flex-col justify-between space-y-5 min-w-0">
           
           <div>
             {/* Header info */}
@@ -549,6 +574,67 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   </div>
                 </div>
 
+                {/* SUGGESTED COMPLEMENTARY PRODUCTS (Chocolates, Balloons, Vases, Gift Sets) */}
+                {suggestedComplementaryProducts.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-pink-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#AD647D] flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5 text-[#C9A46A]" />
+                        <span>منتجات مكملة ومقترحة مع هذه الباقة:</span>
+                      </span>
+                      <span className="text-[10px] text-gray-400">إضافة فورية للسلة</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {suggestedComplementaryProducts.map((comp) => {
+                        const isAdded = addedCompId === comp.id;
+                        return (
+                          <div 
+                            key={comp.id}
+                            className="bg-[#FFF9FA] border border-[#F8DDE6] rounded-2xl p-2.5 flex items-center justify-between gap-2.5 hover:border-[#E7A0B4] transition shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img 
+                                src={comp.image} 
+                                alt={comp.name} 
+                                className="w-11 h-11 rounded-xl object-cover shrink-0 border border-pink-100" 
+                              />
+                              <div className="min-w-0">
+                                <h5 className="text-[11px] font-bold text-[#2D141E] truncate">{comp.name}</h5>
+                                <span className="text-[11px] font-black text-[#AD647D]">
+                                  {comp.salePrice ?? comp.price} ر.س
+                                </span>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleAddComplementary(comp)}
+                              className={`shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-xl transition flex items-center gap-1 cursor-pointer ${
+                                isAdded 
+                                  ? 'bg-emerald-600 text-white' 
+                                  : 'bg-white border border-[#F8DDE6] text-[#AD647D] hover:bg-[#AD647D] hover:text-white'
+                              }`}
+                            >
+                              {isAdded ? (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  <span>تمت الإضافة!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-3 h-3" />
+                                  <span>أضف للسلة</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Banner calling customer to reviews */}
                 <div 
                   onClick={() => setActiveTab('reviews')}
@@ -623,6 +709,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         );
                       })}
                     </div>
+                  </div>
+                </div>
+
+                {/* Trust Guarantees Bar for Customer Confidence */}
+                <div className="grid grid-cols-3 gap-2 text-[10px] sm:text-[11px] text-[#4A2030] font-semibold text-center">
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#F8DDE6] flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-2xs">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>نضارة الزهور 100%</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#F8DDE6] flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-2xs">
+                    <Sparkles className="w-4 h-4 text-[#C9A46A] shrink-0" />
+                    <span>تطابق تام مع الصور</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-white border border-[#F8DDE6] flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-2xs">
+                    <Truck className="w-4 h-4 text-[#AD647D] shrink-0" />
+                    <span>توصيل دقيق بمكة</span>
                   </div>
                 </div>
 
@@ -738,12 +840,55 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   </button>
                 </form>
 
-                {/* 3. Customer Reviews List */}
+                {/* 3. Customer Reviews List with Star Filter */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-[#2D141E] flex items-center justify-between">
-                    <span>آراء العملاء وتجاربهم ({productReviews.length}):</span>
-                    <span className="text-[10px] text-[#C9A46A]">الأحدث أولاً</span>
-                  </h4>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-pink-100 pb-2">
+                    <h4 className="text-xs font-bold text-[#2D141E] flex items-center gap-1.5">
+                      <span>تجارب وآراء العملاء ({productReviews.length}):</span>
+                      {selectedRatingFilter !== 'all' && (
+                        <span className="text-[10px] text-[#AD647D] font-medium">
+                          (معروض {displayedReviews.length} من أصل {productReviews.length})
+                        </span>
+                      )}
+                    </h4>
+
+                    {/* Filter Pills */}
+                    {productReviews.length > 0 && (
+                      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRatingFilter('all')}
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold transition whitespace-nowrap cursor-pointer ${
+                            selectedRatingFilter === 'all'
+                              ? 'bg-[#AD647D] text-white shadow-2xs'
+                              : 'bg-white border border-[#F8DDE6] text-gray-600 hover:bg-pink-50'
+                          }`}
+                        >
+                          الكل ({productReviews.length})
+                        </button>
+                        {[5, 4, 3, 2, 1].map((starNum) => {
+                          const count = ratingCounts[starNum as keyof typeof ratingCounts] || 0;
+                          if (count === 0) return null;
+                          return (
+                            <button
+                              key={starNum}
+                              type="button"
+                              onClick={() => setSelectedRatingFilter(starNum)}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition whitespace-nowrap flex items-center gap-0.5 cursor-pointer ${
+                                selectedRatingFilter === starNum
+                                  ? 'bg-[#AD647D] text-white shadow-2xs'
+                                  : 'bg-white border border-[#F8DDE6] text-gray-600 hover:bg-pink-50'
+                              }`}
+                            >
+                              <span>{starNum}</span>
+                              <Star className="w-2.5 h-2.5 fill-[#C9A46A] text-[#C9A46A]" />
+                              <span>({count})</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
 
                   {productReviews.length === 0 ? (
                     <div className="p-6 text-center bg-[#FFF9FA] rounded-2xl border border-dashed border-[#F8DDE6] space-y-2">
@@ -755,9 +900,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         كن أول عميل يشارك رأيه وتجربته ويضيف تقييماً لمساعدة الآخرين!
                       </p>
                     </div>
+                  ) : displayedReviews.length === 0 ? (
+                    <div className="p-6 text-center bg-[#FFF9FA] rounded-2xl border border-dashed border-[#F8DDE6] space-y-2">
+                      <p className="text-xs font-bold text-[#2D141E]">
+                        لا توجد تقييمات بدرجة ({selectedRatingFilter} نجوم) حالياً
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRatingFilter('all')}
+                        className="text-xs text-[#AD647D] font-bold hover:underline cursor-pointer"
+                      >
+                        عرض جميع التقييمات ({productReviews.length})
+                      </button>
+                    </div>
                   ) : (
                     <div className="space-y-3">
-                      {productReviews.map((rev) => (
+                      {displayedReviews.map((rev) => (
                         <div 
                           key={rev.id} 
                           className="p-3.5 rounded-2xl bg-white border border-[#F8DDE6] shadow-2xs space-y-2"

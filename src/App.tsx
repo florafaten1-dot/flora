@@ -10,6 +10,7 @@ import { Footer } from './components/layout/Footer';
 import { HomeView } from './components/home/HomeView';
 import { ProductsCatalogView } from './components/products/ProductsCatalogView';
 import { ProductModal } from './components/products/ProductModal';
+import { ProductCompareModal } from './components/products/ProductCompareModal';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { CheckoutModal } from './components/checkout/CheckoutModal';
 import { OrderTrackingView } from './components/tracking/OrderTrackingView';
@@ -19,10 +20,10 @@ import { AffiliatePortalView } from './components/affiliate/AffiliatePortalView'
 import { WishlistView } from './components/wishlist/WishlistView';
 import { AboutView, ContactView, PolicyView } from './components/pages/StaticPages';
 import { Product, Order } from './types';
-import { Flower2, ShieldAlert, Sparkles, X } from 'lucide-react';
+import { Flower2, ShieldAlert, Sparkles, X, Scale } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
-  const { isStaff, loadingData, products, activeReferralCode } = useStore();
+  const { isStaff, loadingData, products, activeReferralCode, compareList } = useStore();
   const [showReferralBanner, setShowReferralBanner] = useState(true);
 
   // Active navigation tab
@@ -33,6 +34,7 @@ const MainAppContent: React.FC = () => {
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   // Navigate helper
   const handleNavigate = (tab: string) => {
@@ -75,6 +77,15 @@ const MainAppContent: React.FC = () => {
       return (
         <ProductsCatalogView
           initialCategory={slug}
+          onOpenProductDetails={(product) => setSelectedProductForModal(product)}
+        />
+      );
+    }
+
+    if (currentTab.startsWith('occ_')) {
+      return (
+        <ProductsCatalogView
+          initialCategory={currentTab}
           onOpenProductDetails={(product) => setSelectedProductForModal(product)}
         />
       );
@@ -140,6 +151,7 @@ const MainAppContent: React.FC = () => {
       <HomeView
         onNavigate={handleNavigate}
         onOpenProductDetails={(product) => setSelectedProductForModal(product)}
+        onSelectProduct={handleSelectProduct}
       />
     );
   };
@@ -152,6 +164,7 @@ const MainAppContent: React.FC = () => {
         currentTab={currentTab}
         setCurrentTab={handleNavigate}
         onOpenCart={() => setIsCartOpen(true)}
+        onOpenCompare={() => setIsCompareOpen(true)}
         onSelectProduct={handleSelectProduct}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -226,6 +239,30 @@ const MainAppContent: React.FC = () => {
         onClose={() => setIsCheckoutOpen(false)}
         onOrderCompleted={handleOrderCompleted}
       />
+
+      {/* Product Comparison Modal (Max 3 products) */}
+      <ProductCompareModal
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
+        onOpenProductDetails={(product) => setSelectedProductForModal(product)}
+        onOpenCart={() => setIsCartOpen(true)}
+      />
+
+      {/* Floating Compare Button when items are in compare list */}
+      {compareList.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setIsCompareOpen(true)}
+          className="fixed bottom-6 left-6 z-40 bg-gradient-to-r from-[#2D141E] via-[#4A2030] to-[#2D141E] text-white px-4 py-3 rounded-full shadow-2xl border border-[#C9A46A]/50 hover:border-[#C9A46A] flex items-center gap-2.5 transition transform hover:scale-105 active:scale-95 animate-fadeIn cursor-pointer"
+          title="عرض جدول مقارنة الباقات"
+        >
+          <Scale className="w-4 h-4 text-[#C9A46A]" />
+          <span className="text-xs font-bold">مقارنة الباقات</span>
+          <span className="bg-[#C9A46A] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+            {compareList.length}
+          </span>
+        </button>
+      )}
 
     </div>
   );

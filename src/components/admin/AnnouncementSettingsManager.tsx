@@ -303,7 +303,7 @@ export const AnnouncementSettingsManager: React.FC<AnnouncementSettingsManagerPr
                 لا توجد رسائل مفعلة حالياً. يرجى تفعيل رسالة واحدة على الأقل.
               </div>
             ) : currentSettings.mode === 'marquee' ? (
-              <div className={`w-full overflow-hidden flex items-center ${currentSettings.closable ? 'pl-8 pr-3' : 'px-3'}`}>
+              <div className={`w-full max-w-full min-w-0 overflow-hidden flex items-center ${currentSettings.closable ? 'pl-8 pr-3' : 'px-3'}`}>
                 <div className={`flex items-center ${
                   currentSettings.direction === 'ltr' ? 'announcement-marquee-ltr' : 'announcement-marquee-rtl'
                 } ${currentSettings.pauseOnHover ? 'announcement-pause-hover' : ''}`}>

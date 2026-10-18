@@ -13,27 +13,38 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ProductCard } from '../products/ProductCard';
+import { HeroBannerSlider } from './HeroBannerSlider';
+import { OccasionsSection } from './OccasionsSection';
 import { Product } from '../../types';
 
 interface HomeViewProps {
   onNavigate: (tab: string) => void;
   onOpenProductDetails: (product: Product) => void;
+  onSelectProduct?: (productId: string) => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
   onNavigate,
-  onOpenProductDetails
+  onOpenProductDetails,
+  onSelectProduct
 }) => {
-  const { products, categories, settings } = useStore();
+  const { products, categories, settings, getBestSellerProducts, orders } = useStore();
 
-  const featuredProducts = products.filter(p => p.featured || p.isBestSeller).slice(0, 8);
-  const bestSellers = products.filter(p => p.isBestSeller).slice(0, 4);
+  const completedOrders = orders.filter(o => o.status === 'completed');
+  const hasRealSales = completedOrders.length >= 2;
+  const bestSellerProducts = getBestSellerProducts(8);
 
   return (
-    <div className="space-y-12 sm:space-y-16 animate-fadeIn w-full max-w-full overflow-hidden">
+    <div className="space-y-8 sm:space-y-14 animate-fadeIn w-full max-w-full overflow-hidden">
       
-      {/* LUXURY HERO BANNER */}
-      <section className="relative overflow-hidden w-full max-w-full bg-gradient-to-b from-[#FFF5F7] via-[#FFF9FA] to-white pt-6 pb-12 sm:pt-8 sm:pb-16 md:py-20 border-b border-[#F8DDE6]">
+      {/* 1. MARKETING HERO BANNER SLIDER (Directly below Header, like Kanaa reference) */}
+      <HeroBannerSlider
+        onNavigate={onNavigate}
+        onSelectProduct={onSelectProduct}
+      />
+
+      {/* 2. LUXURY BOUTIQUE INTRO & GUARANTEES */}
+      <section className="relative overflow-hidden w-full max-w-full bg-gradient-to-b from-[#FFF5F7] via-[#FFF9FA] to-white pt-6 pb-12 sm:pt-8 sm:pb-16 md:py-16 border-y border-[#F8DDE6]">
         {/* Soft Background Decorative Blobs without negative margin leaks */}
         <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 rounded-full bg-[#F8DDE6]/40 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 sm:w-96 h-64 sm:h-96 rounded-full bg-[#E7A0B4]/20 blur-3xl pointer-events-none" />
@@ -192,10 +203,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <span className="text-xs font-bold text-[#C9A46A] uppercase tracking-wider">مختارات فلورا فاتن</span>
+            <span className="text-xs font-bold text-[#C9A46A] uppercase tracking-wider">
+              {hasRealSales ? 'الأكثر مبيعاً' : 'مختارات فلورا فاتن'}
+            </span>
             <h2 className="text-2xl sm:text-3xl font-black text-[#2D141E] font-serif-lux mt-1">
-              الباقات الأكثر طلباً ومحبة 🌸
+              {hasRealSales ? 'الباقات الأكثر مبيعاً في مكة المكرمة 🌸' : 'منتجات مميزة مختارة من إدارة البوتيك ✨'}
             </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              {hasRealSales 
+                ? 'مختارات حقيقية تم حسابها بناءً على طلبات عملائنا المكتملة فعلياً' 
+                : 'باقات وتنسيقات ملكية استثنائية تميزت بذوق رفيع وجودة زهور هولندية قطف يومي'}
+            </p>
           </div>
           <button
             onClick={() => onNavigate('products')}
@@ -207,7 +225,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-          {featuredProducts.map((product) => (
+          {bestSellerProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -217,9 +235,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
+      {/* 4. GIFTS BY OCCASION (Real products categorized into 8 core occasions) */}
+      <OccasionsSection
+        onNavigate={onNavigate}
+        onOpenProductDetails={onOpenProductDetails}
+      />
+
       {/* OCCASIONS SPECIAL BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#2D141E] via-[#4A2030] to-[#2D141E] text-white p-8 md:p-14 shadow-2xl border border-[#F8DDE6]/20">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#2D141E] via-[#4A2030] to-[#2D141E] text-white p-5 sm:p-8 md:p-14 shadow-2xl border border-[#F8DDE6]/20">
           
           <div className="relative z-10 max-w-xl space-y-4">
             <span className="bg-[#C9A46A] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block">
@@ -238,14 +262,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="pt-2 flex flex-wrap gap-3">
               <button
                 onClick={() => onNavigate('cat_occasions-gifts')}
-                className="py-3 px-6 rounded-full bg-[#E7A0B4] hover:bg-[#AD647D] text-white font-bold text-xs transition shadow-md"
+                className="py-3 px-6 rounded-full bg-[#E7A0B4] hover:bg-[#AD647D] text-white font-bold text-xs transition shadow-md cursor-pointer"
               >
                 تصفح هدايا المناسبات
               </button>
 
               <button
                 onClick={() => onNavigate('cat_balloons-party')}
-                className="py-3 px-6 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold text-xs transition"
+                className="py-3 px-6 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold text-xs transition cursor-pointer"
               >
                 بالونات وتوزيعات
               </button>
@@ -262,8 +286,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* WHATSAPP CUSTOM CONCIERGE BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="bg-[#FFF4F7] border border-[#F8DDE6] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4 text-center md:text-right">
+        <div className="bg-[#FFF4F7] border border-[#F8DDE6] rounded-3xl p-5 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 text-center sm:text-right min-w-0">
             <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
               <Phone className="w-7 h-7" />
             </div>
@@ -281,7 +305,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             href={`https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('مرحباً فلورا فاتن، أود الاستفسار عن تنسيق باقة مخصصة')}`}
             target="_blank"
             rel="noreferrer"
-            className="py-3 px-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl shadow-sm transition whitespace-nowrap flex items-center gap-2"
+            className="w-full sm:w-auto justify-center py-3 px-6 sm:px-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl shadow-sm transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
           >
             <span>محادثة واتساب مباشرة</span>
             <ArrowLeft className="w-4 h-4" />
