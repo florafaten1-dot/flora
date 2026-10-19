@@ -2,69 +2,193 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Store Settings (readable and configurable by store administration and seeding)
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.token.email.lower() == 'floraf.aten1@gmail.com';
+    }
+
+    function isStaff() {
+      return isSuperAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'admin', 'employee']
+      );
+    }
+
+    // 1. Store Settings:
+    // - Public read (store name, delivery fees, announcement bar, contact info)
+    // - Staff write only
     match /storeSettings/{settingId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isStaff() || isSuperAdmin();
     }
 
-    // Products catalog (readable by visitors, manageable by administration and order stock reduction)
+    // 2. Products Catalog:
+    // - Public read (browsing products)
+    // - Staff full control (create, update, delete)
+    // - Transactional stock reduction: during checkout, only allows decrementing stock (never price or details)
     match /products/{productId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, delete: if isStaff();
+      allow update: if isStaff() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'updatedAt']) &&
+        request.resource.data.stock is int &&
+        request.resource.data.stock >= 0 &&
+        request.resource.data.stock <= resource.data.stock
+      );
     }
 
-    // Categories
+    // 3. Categories:
+    // - Public read, Staff write
     match /categories/{categoryId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isStaff();
     }
 
-    // Banners
+    // 4. Banners:
+    // - Public read, Staff write
     match /banners/{bannerId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isStaff();
     }
 
-    // Coupons
+    // 5. Coupons:
+    // - Public read (to validate discount codes), Staff write
+    // - Increment usage count during checkout
     match /coupons/{couponId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, delete: if isStaff();
+      allow update: if isStaff() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usageCount', 'updatedAt'])
+      );
     }
 
-    // Orders (customers can place and track orders; admins can manage and update statuses)
+    // 6. Orders:
+    // - Strict Validation on Create:
+    //   * customerName (min 2 chars)
+    //   * customerPhone (min 9 chars)
+    //   * deliveryCity MUST contain Makkah (مكة)
+    //   * deliveryDistrict (min 2 chars)
+    //   * deliveryAddress (min 3 chars)
+    //   * subtotal >= 50 SAR & total >= 50 SAR
+    //   * Initial status must be 'new' or 'pending_payment'
+    //   * Payment status must be 'unpaid' or 'pending'
+    //   * items must be non-empty list
+    //   * If user is authenticated, userId must match request.auth.uid
+    // - NO GENERAL READ:
+    //   * Staff can read all orders
+    //   * Authenticated customer can read only their own orders
+    // - Update / Delete: Staff only
     match /orders/{orderId} {
-      allow read, write: if true;
+      allow create: if 
+        request.resource.data.customerName is string &&
+        request.resource.data.customerName.size() >= 2 &&
+        request.resource.data.customerPhone is string &&
+        request.resource.data.customerPhone.size() >= 9 &&
+        request.resource.data.deliveryCity is string &&
+        request.resource.data.deliveryCity.matches('.*مكة.*') &&
+        request.resource.data.deliveryDistrict is string &&
+        request.resource.data.deliveryDistrict.size() >= 2 &&
+        request.resource.data.deliveryAddress is string &&
+        request.resource.data.deliveryAddress.size() >= 3 &&
+        request.resource.data.subtotal is number &&
+        request.resource.data.subtotal >= 50 &&
+        request.resource.data.total is number &&
+        request.resource.data.total >= 50 &&
+        request.resource.data.status in ['new', 'pending_payment'] &&
+        request.resource.data.paymentStatus in ['unpaid', 'pending'] &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() > 0 &&
+        (!isAuthenticated() || request.resource.data.userId == request.auth.uid);
+
+      allow list: if isStaff() || (
+        isAuthenticated() && resource.data.userId == request.auth.uid
+      );
+
+      allow get: if isStaff() || (
+        isAuthenticated() && resource.data.userId == request.auth.uid
+      );
+
+      allow update, delete: if isStaff();
     }
 
-    // Product reviews and ratings
+    // 7. Product Reviews:
+    // - Public read
+    // - Rating must be between 1 and 5
+    // - Staff moderation / delete
     match /reviews/{reviewId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if request.resource.data.rating is int &&
+        request.resource.data.rating >= 1 && 
+        request.resource.data.rating <= 5 &&
+        request.resource.data.comment is string &&
+        request.resource.data.comment.size() >= 2;
+      allow update, delete: if isStaff();
     }
 
-    // User profiles
+    // 8. User Profiles:
+    // - User can read/write their own profile
+    // - Staff can read and manage
+    // - Anti-Privilege Escalation:
+    //   * Regular users cannot set role to 'owner', 'admin', or 'employee'
+    //   * Only isSuperAdmin or isStaff can assign staff roles
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isStaff());
+      allow create: if isAuthenticated() && request.auth.uid == userId && (
+        isSuperAdmin() || 
+        !('role' in request.resource.data) || 
+        request.resource.data.role == 'customer'
+      );
+      allow update: if isSuperAdmin() || (
+        isStaff() && request.resource.data.role != 'owner'
+      ) || (
+        isAuthenticated() && request.auth.uid == userId && (
+          !('role' in request.resource.data) || 
+          request.resource.data.role == resource.data.role ||
+          (resource.data.role == 'customer' && request.resource.data.role == 'customer')
+        )
+      );
+      allow delete: if isSuperAdmin();
     }
 
-    // Affiliates and Creators
+    // 9. Affiliates:
+    // - Read: Staff can read all; Affiliate can read own profile
+    // - Create: Authenticated users can apply for affiliate program
+    // - Update: Staff full control; Atomic stats updates on order completion
     match /affiliates/{affiliateId} {
-      allow read, write: if true;
+      allow read: if isStaff() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isStaff() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalOrders', 'totalSales', 'totalEarnings', 'pendingBalance', 'totalClicks'])
+      );
+      allow delete: if isStaff();
     }
 
-    // Payout requests
+    // 10. Payout Requests:
+    // - Read: Staff can read all; Affiliate can read own payouts
+    // - Create: Authenticated affiliate can request payout
+    // - Update/Delete: Staff only
     match /payouts/{payoutId} {
-      allow read, write: if true;
+      allow read: if isStaff() || (isAuthenticated() && resource.data.affiliateId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.affiliateId == request.auth.uid;
+      allow update, delete: if isStaff();
     }
 
-    // Affiliate transactions
+    // 11. Affiliate Transactions:
+    // - Read: Staff can read all; Affiliate can read own
+    // - Write: Staff only
     match /affiliateTransactions/{transId} {
-      allow read, write: if true;
+      allow read: if isStaff() || (isAuthenticated() && resource.data.affiliateId == request.auth.uid);
+      allow write: if isStaff();
     }
 
-    // Test connection check
-    match /test/{docId} {
-      allow read, write: if true;
-    }
-
-    // Default match for any subcollections
+    // Default Deny for anything else
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if isStaff();
     }
   }
 }

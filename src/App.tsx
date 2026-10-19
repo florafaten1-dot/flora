@@ -18,7 +18,15 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { UserAccountView } from './components/account/UserAccountView';
 import { AffiliatePortalView } from './components/affiliate/AffiliatePortalView';
 import { WishlistView } from './components/wishlist/WishlistView';
-import { AboutView, ContactView, PolicyView } from './components/pages/StaticPages';
+import { 
+  AboutView, 
+  ContactView, 
+  PolicyView, 
+  FAQView, 
+  PrivacyPolicyView, 
+  TermsView, 
+  DeliveryReturnPolicyView 
+} from './components/pages/StaticPages';
 import { Product, Order } from './types';
 import { Flower2, ShieldAlert, Sparkles, X, Scale } from 'lucide-react';
 
@@ -143,8 +151,20 @@ const MainAppContent: React.FC = () => {
       return <ContactView />;
     }
 
-    if (currentTab === 'policy') {
-      return <PolicyView />;
+    if (currentTab === 'faq') {
+      return <FAQView />;
+    }
+
+    if (currentTab === 'privacy') {
+      return <PrivacyPolicyView />;
+    }
+
+    if (currentTab === 'terms') {
+      return <TermsView />;
+    }
+
+    if (currentTab === 'delivery-policy' || currentTab === 'policy') {
+      return <DeliveryReturnPolicyView />;
     }
 
     return (

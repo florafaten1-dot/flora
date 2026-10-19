@@ -23,7 +23,7 @@ export const OccasionsSection: React.FC<OccasionsSectionProps> = ({
   onOpenProductDetails
 }) => {
   const { products } = useStore();
-  const [selectedOccasion, setSelectedOccasion] = useState<OccasionType>('birthday');
+  const [selectedOccasion, setSelectedOccasion] = useState<OccasionType>('celebrations');
 
   const activeOccasionInfo = STORE_OCCASIONS.find(o => o.id === selectedOccasion) || STORE_OCCASIONS[0];
 

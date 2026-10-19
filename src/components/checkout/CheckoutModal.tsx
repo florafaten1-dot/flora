@@ -62,6 +62,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
   const [surpriseRecipient, setSurpriseRecipient] = useState(false);
+  const checkoutSessionIdRef = React.useRef<string>(`order_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`);
 
   // Address in Makkah
   const makkahFallbackCities = [
@@ -80,7 +81,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   ];
 
   const activeCities = (settings.cities && settings.cities.length > 0)
-    ? settings.cities.filter(c => c.active && (c.name.includes('مكة') || settings.cities.length <= 12))
+    ? settings.cities.filter(c => c.active && c.name.includes('مكة'))
     : makkahFallbackCities;
 
   const defaultCityChoice = activeCities.find(c => c.name.includes('الحمراء'))?.name || activeCities[0]?.name || 'مكة المكرمة - حي الحمراء (المنطقة الرئيسية)';
@@ -111,7 +112,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   // Calculations
   const selectedCityObj = activeCities.find(c => c.name === deliveryCity);
   const rawDeliveryFee = selectedCityObj?.fee ?? settings.deliveryFeeDefault ?? 25;
-  const isFreeDelivery = cartSubtotal >= (settings.freeDeliveryThreshold || 350);
+  const isFreeDelivery = cartSubtotal >= (settings.freeDeliveryThreshold ?? 300);
   const deliveryFee = isFreeDelivery ? 0 : rawDeliveryFee;
 
   let discountAmount = 0;
@@ -137,7 +138,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setStep(2);
     } else if (step === 2) {
       if (!deliveryDistrict.trim() || !deliveryAddress.trim()) {
-        setErrorMessage('يرجى إدخال الحي والعنوان التفصيلي للتوصيل');
+        setErrorMessage('يرجى إدخال الحي والعنوان التفصيلي للتوصيل داخل مكة المكرمة');
+        return;
+      }
+      const forbiddenCities = ['جدة', 'الرياض', 'الدمام', 'المدينة', 'الطائف', 'الخبر', 'jeddah', 'riyadh', 'dammam'];
+      const textToCheck = `${deliveryCity} ${deliveryDistrict} ${deliveryAddress}`.toLowerCase();
+      if (forbiddenCities.some(c => textToCheck.includes(c)) || !deliveryCity.includes('مكة')) {
+        setErrorMessage('عذراً، خدمة التوصيل متاحة حصرياً داخل أحياء مكة المكرمة فقط. لا نقبل طلبات خارج مكة.');
         return;
       }
       setStep(3);
@@ -145,7 +152,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const handleSubmitOrder = async () => {
+    if (isSubmitting) return; // Prevent duplicate order creation on double-click
     setErrorMessage(null);
+
+    // Validate minimum order amount
+    const minAmount = settings.minOrderAmount || 50;
+    if (cartSubtotal < minAmount) {
+      setErrorMessage(`الحد الأدنى لقيمة الطلب هو ${minAmount} ر.س.`);
+      return;
+    }
+
+    // Verify Makkah delivery zone
+    const forbiddenCities = ['جدة', 'الرياض', 'الدمام', 'المدينة', 'الطائف', 'الخبر', 'jeddah', 'riyadh', 'dammam'];
+    const textToCheck = `${deliveryCity} ${deliveryDistrict} ${deliveryAddress}`.toLowerCase();
+    if (forbiddenCities.some(c => textToCheck.includes(c)) || !deliveryCity.includes('مكة')) {
+      setErrorMessage('عذراً، خدمة التوصيل متاحة حصرياً داخل أحياء مكة المكرمة فقط.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Map cart items to order items
@@ -187,7 +211,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         paymentMethod,
         paymentStatus: paymentMethod === 'cod' ? 'unpaid' : 'paid',
         notes: surpriseRecipient ? 'ملاحظة للإدارة والمندوب: مفاجأة - لا تتصل بالمرسل إلا للضرورة' : undefined
-      });
+      }, checkoutSessionIdRef.current);
 
       setCompletedOrder(newOrder);
       onOrderCompleted(newOrder);

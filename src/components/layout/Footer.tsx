@@ -9,7 +9,8 @@ import {
   Truck, 
   Heart, 
   CheckCircle2, 
-  Database 
+  Database,
+  Sparkles 
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { BrandLogo } from '../common/BrandLogo';
@@ -84,11 +85,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               {settings.tagline || 'حيث تتفتح مشاعرك بأرقى باقات الورد والهدايا الفاخرة وتنسيقات المناسبات السعيدة في المملكة العربية السعودية.'}
             </p>
 
-            {/* Cloud Central Sync badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <Database className="w-3.5 h-3.5 text-emerald-600" />
-              <span>مزامنة سحابية حية عبر Firebase Firestore</span>
+            {/* Trust badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-[#AD647D] text-xs font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-[#C9A46A]" />
+              <span>صناعة يدوية فاخرة | توصيل حصري بمكة المكرمة</span>
             </div>
 
             <div className="pt-2 text-xs text-gray-500">
@@ -137,6 +137,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
+                <button onClick={() => onNavigate('faq')} className="hover:text-[#AD647D] transition">
+                  الأسئلة الشائعة
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavigate('about')} className="hover:text-[#AD647D] transition">
                   من نحن - قصة فلورا فاتن
                 </button>
@@ -148,23 +153,36 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button onClick={() => onNavigate('affiliate')} className="hover:text-[#AD647D] transition font-semibold text-[#AD647D]">
-                  برنامج التسويق بالعمولة (شركاء النجاح)
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate('policy')} className="hover:text-[#AD647D] transition">
-                  الشروط وسياسة الاسترجاع
+                  برنامج شركاء النجاح (التسويق بالعمولة)
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Contact Details */}
+          {/* Policies & Contact Details */}
           <div className="space-y-3">
             <h5 className="text-xs font-bold uppercase tracking-wider text-[#AD647D] border-r-2 border-[#C9A46A] pr-2">
-              خدمة العملاء
+              السياسات وخدمة العملاء
             </h5>
-            <ul className="space-y-2.5 text-xs">
+            <ul className="space-y-2 text-xs mb-3">
+              <li>
+                <button onClick={() => onNavigate('delivery-policy')} className="hover:text-[#AD647D] transition">
+                  سياسة التوصيل والاسترجاع
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('privacy')} className="hover:text-[#AD647D] transition">
+                  سياسة الخصوصية
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('terms')} className="hover:text-[#AD647D] transition">
+                  الشروط والأحكام
+                </button>
+              </li>
+            </ul>
+
+            <ul className="space-y-2.5 text-xs pt-2 border-t border-[#F8DDE6]/50">
               <li className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#AD647D]" />
                 <span dir="ltr">{settings.phone}</span>
@@ -189,24 +207,18 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Bottom Bar & Payment Icons */}
         <div className="pt-8 border-t border-[#F8DDE6] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#AD647D] text-center md:text-right">
           <div>
-            جميع الحقوق محفوظة © {new Date().getFullYear()} متجر Flora Faten | فلورا فاتن
+            جميع الحقوق محفوظة © {new Date().getFullYear()} متجر Flora Faten | فلورا فاتن — مكة المكرمة
           </div>
 
           {/* Payment Badges */}
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span className="text-[11px] font-medium text-gray-500">طرق الدفع:</span>
+            <span className="text-[11px] font-medium text-gray-500">طريقة الدفع عند الاستلام:</span>
             <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-              <span className="px-2 py-1 bg-white rounded-md border border-[#F8DDE6] text-[10px] font-bold text-blue-900 shadow-2xs">
-                مدى Mada
+              <span className="px-2.5 py-1 bg-white rounded-md border border-[#F8DDE6] text-[10px] font-bold text-blue-900 shadow-2xs">
+                مدى Mada (جهاز نقاط البيع)
               </span>
-              <span className="px-2 py-1 bg-black text-white rounded-md text-[10px] font-bold shadow-2xs">
-                 Pay
-              </span>
-              <span className="px-2 py-1 bg-white rounded-md border border-[#F8DDE6] text-[10px] font-bold text-blue-600 shadow-2xs">
-                Visa / Master
-              </span>
-              <span className="px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-bold shadow-2xs">
-                الدفع عند الاستلام
+              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-bold shadow-2xs">
+                نقداً مع المندوب
               </span>
             </div>
           </div>

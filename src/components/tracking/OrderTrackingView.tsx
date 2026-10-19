@@ -16,25 +16,38 @@ import { useStore } from '../../context/StoreContext';
 import { Order, OrderStatus } from '../../types';
 
 export const OrderTrackingView: React.FC = () => {
-  const { orders, settings } = useStore();
+  const { orders, settings, trackOrder } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchedOrder, setSearchedOrder] = useState<Order | null>(null);
   const [searched, setSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const term = searchTerm.trim().toLowerCase();
+    const term = searchTerm.trim();
     if (!term) return;
 
+    setIsSearching(true);
+    // Search local list first
     const found = orders.find(o => 
-      o.orderNumber.toLowerCase().includes(term) ||
-      o.id.toLowerCase().includes(term) ||
+      o.orderNumber.toLowerCase().includes(term.toLowerCase()) ||
+      o.id.toLowerCase().includes(term.toLowerCase()) ||
       o.customerPhone.includes(term) ||
       (o.recipientPhone && o.recipientPhone.includes(term))
     );
 
-    setSearchedOrder(found || null);
+    if (found) {
+      setSearchedOrder(found);
+      setSearched(true);
+      setIsSearching(false);
+      return;
+    }
+
+    // Direct Firestore lookup for customer privacy
+    const remote = await trackOrder(term);
+    setSearchedOrder(remote);
     setSearched(true);
+    setIsSearching(false);
   };
 
   // Helper to determine status progress step (1 to 5)
@@ -114,26 +127,34 @@ export const OrderTrackingView: React.FC = () => {
           </button>
         </form>
 
-        {/* Quick hint for recent orders */}
-        {orders.length > 0 && !searchedOrder && (
-          <div className="mt-4 pt-3 border-t border-pink-50 text-[11px] text-gray-500 flex items-center gap-2 flex-wrap">
-            <span>أحدث الطلبات في المتجر للاختبار السريع:</span>
-            {orders.slice(0, 3).map(o => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => {
-                  setSearchTerm(o.orderNumber);
-                  setSearchedOrder(o);
-                  setSearched(true);
-                }}
-                className="bg-[#FFF0F4] text-[#AD647D] px-2.5 py-1 rounded-lg font-mono font-bold hover:bg-[#F8DDE6] transition"
-              >
-                {o.orderNumber}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* User's own saved orders from current device only */}
+        {(() => {
+          try {
+            const mySaved = JSON.parse(localStorage.getItem('florafaten_my_orders') || '[]');
+            if (mySaved.length > 0 && !searchedOrder) {
+              return (
+                <div className="mt-4 pt-3 border-t border-pink-50 text-[11px] text-gray-500 flex items-center gap-2 flex-wrap">
+                  <span>طلباتك السابقة على هذا الجهاز:</span>
+                  {mySaved.slice(0, 3).map((o: any) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm(o.orderNumber);
+                        setSearchedOrder(o);
+                        setSearched(true);
+                      }}
+                      className="bg-[#FFF0F4] text-[#AD647D] px-2.5 py-1 rounded-lg font-mono font-bold hover:bg-[#F8DDE6] transition"
+                    >
+                      {o.orderNumber}
+                    </button>
+                  ))}
+                </div>
+              );
+            }
+          } catch {}
+          return null;
+        })()}
       </div>
 
       {/* Results View */}

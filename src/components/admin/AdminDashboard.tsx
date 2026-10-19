@@ -168,19 +168,35 @@ export const AdminDashboard: React.FC = () => {
   // Delivery zones/districts management
   const [newDistrictName, setNewDistrictName] = useState('');
   const [newDistrictFee, setNewDistrictFee] = useState<number>(20);
+  const [districtError, setDistrictError] = useState<string | null>(null);
 
   React.useEffect(() => {
     setSettingsForm(settings);
   }, [settings]);
 
   const handleAddDistrict = () => {
-    if (!newDistrictName.trim()) return;
+    setDistrictError(null);
+    const raw = newDistrictName.trim();
+    if (!raw) return;
+
+    const forbiddenCities = ['جدة', 'الرياض', 'الدمام', 'المدينة', 'الطائف', 'الخبر', 'jeddah', 'riyadh', 'dammam', 'تبوك', 'أبها', 'بريدة', 'عنيزة', 'حائل', 'جازان', 'نجران', 'ينبع', 'الجبيل'];
+    if (forbiddenCities.some(c => raw.toLowerCase().includes(c))) {
+      setDistrictError('تنبيه: التوصيل مخصص حصرياً لأحياء مكة المكرمة فقط. لا يمكن إضافة مدن أخرى.');
+      return;
+    }
+
+    if (!raw.includes('مكة') && !raw.startsWith('حي ') && !raw.startsWith('منطقة ') && !raw.startsWith('ضاحية ')) {
+      setDistrictError('يرجى كتابة اسم حي معتمد داخل مكة المكرمة (مثال: حي الشوقية، حي العوالي، أو مكة المكرمة - بطحاء قريش).');
+      return;
+    }
+
+    const formattedName = raw.startsWith('مكة') ? raw : `مكة المكرمة - ${raw}`;
     const currentCities = settingsForm.cities || [];
     setSettingsForm({
       ...settingsForm,
       cities: [
         ...currentCities,
-        { name: newDistrictName.trim(), fee: Number(newDistrictFee) || 20, active: true }
+        { name: formattedName, fee: Number(newDistrictFee) || 20, active: true }
       ]
     });
     setNewDistrictName('');
@@ -1918,6 +1934,11 @@ export const AdminDashboard: React.FC = () => {
                   إضافة الحي
                 </button>
               </div>
+              {districtError && (
+                <p className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 animate-fadeIn">
+                  ⚠️ {districtError}
+                </p>
+              )}
             </div>
 
             {/* Announcement Banner Shortcut Card */}
@@ -3247,7 +3268,7 @@ export const AdminDashboard: React.FC = () => {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { id: 'birthday', label: 'أعياد الميلاد 🎂' },
+                    { id: 'celebrations', label: 'الاحتفالات والمناسبات الخاصة ✨' },
                     { id: 'wedding', label: 'الزواج والذكرى 💍' },
                     { id: 'graduation', label: 'التخرج والنجاح 🎓' },
                     { id: 'newborn', label: 'المواليد 👶' },

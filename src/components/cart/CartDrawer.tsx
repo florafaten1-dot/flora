@@ -45,7 +45,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   // Free delivery calculation
-  const freeThreshold = settings.freeDeliveryThreshold || 350;
+  const freeThreshold = settings.freeDeliveryThreshold ?? 300;
   const remainingForFreeDelivery = Math.max(0, freeThreshold - cartSubtotal);
   const deliveryProgressPercent = Math.min(100, Math.round((cartSubtotal / freeThreshold) * 100));
 

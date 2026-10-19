@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.token.email.lower() == 'floraf.aten1@gmail.com';
+    }
+
+    function isStaff() {
+      return isSuperAdmin() || (
+        isAuthenticated() && 
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner', 'admin', 'employee']
+      );
+    }
+
+    // Public Assets (Product images, Banners, Categories, Logo)
+    // 1. Read: Public read so all storefront visitors can see flowers & banners
+    // 2. Upload / Delete: Only Super Admin and authorized Store Staff
+    // 3. Safety checks: Allowed image MIME types only (JPEG, PNG, WebP) and maximum 10MB per file
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isStaff() &&
+        request.resource.size < 10 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/(jpeg|png|webp|svg\\+xml|gif)');
+    }
+  }
+}

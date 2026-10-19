@@ -18,7 +18,10 @@ import {
   updateDoc, 
   deleteDoc, 
   getDocs,
-  getDoc
+  getDoc,
+  runTransaction,
+  query,
+  where
 } from 'firebase/firestore';
 import { 
   auth, 
@@ -241,7 +244,8 @@ interface StoreContextType {
   activeReferralCode: string | null;
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
-  createOrder: (orderPayload: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>) => Promise<Order>;
+  createOrder: (orderPayload: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>, customOrderId?: string) => Promise<Order>;
+  trackOrder: (orderNumberOrId: string) => Promise<Order | null>;
 
   // Affiliate & Creators Program
   affiliates: AffiliateProfile[];
@@ -607,59 +611,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }, (err) => console.warn('Coupons snapshot:', err));
         unsubs.push(unsubCoupons);
 
-        // 5. Orders (centralized live stream)
-        const ordersRef = collection(db, 'orders');
-        const unsubOrders = onSnapshot(ordersRef, (querySnap) => {
-          const ordList: Order[] = [];
-          querySnap.forEach((d) => ordList.push({ ...d.data(), id: d.id } as Order));
-          ordList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          setOrders(ordList);
-        }, (err) => console.warn('Orders snapshot:', err));
-        unsubs.push(unsubOrders);
-
-        // 6. Affiliates (centralized live stream)
-        const affiliatesRef = collection(db, 'affiliates');
-        const unsubAffiliates = onSnapshot(affiliatesRef, async (querySnap) => {
-          if (!querySnap.empty) {
-            const affList: AffiliateProfile[] = [];
-            querySnap.forEach((d) => affList.push({ ...d.data(), id: d.id } as AffiliateProfile));
-            setAffiliates(affList);
-          } else {
-            for (const aff of INITIAL_AFFILIATES) {
-              setDoc(doc(db, 'affiliates', aff.id), aff).catch(err => console.warn('Aff seed:', err));
-            }
-            setAffiliates(INITIAL_AFFILIATES);
-          }
-        }, (err) => console.warn('Affiliates snapshot:', err));
-        unsubs.push(unsubAffiliates);
-
-        // 7. Payouts (centralized live stream)
-        const payoutsRef = collection(db, 'payouts');
-        const unsubPayouts = onSnapshot(payoutsRef, async (querySnap) => {
-          if (!querySnap.empty) {
-            const payList: PayoutRequest[] = [];
-            querySnap.forEach((d) => payList.push({ ...d.data(), id: d.id } as PayoutRequest));
-            payList.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
-            setPayouts(payList);
-          } else {
-            for (const p of INITIAL_PAYOUTS) {
-              setDoc(doc(db, 'payouts', p.id), p).catch(err => console.warn('Payout seed:', err));
-            }
-            setPayouts(INITIAL_PAYOUTS);
-          }
-        }, (err) => console.warn('Payouts snapshot:', err));
-        unsubs.push(unsubPayouts);
-
-        // 8. Users collection (for Owner and Admin user management)
-        const usersRef = collection(db, 'users');
-        const unsubUsers = onSnapshot(usersRef, (querySnap) => {
-          const uList: UserProfile[] = [];
-          querySnap.forEach((d) => uList.push({ ...d.data(), uid: d.id } as UserProfile));
-          setAllUsers(uList);
-        }, (err) => console.warn('Users snapshot:', err));
-        unsubs.push(unsubUsers);
-
-        // 9. Reviews collection
+        // 5. Reviews collection (Public read)
         const reviewsRef = collection(db, 'reviews');
         const unsubReviews = onSnapshot(reviewsRef, async (querySnap) => {
           if (!querySnap.empty) {
@@ -716,6 +668,73 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const isOwner = isEmailSuperAdmin || userProfile?.role === 'owner';
   const isAdmin = isOwner || userProfile?.role === 'admin' || isDemoAdmin;
   const isStaff = isOwner || isAdmin || userProfile?.role === 'employee';
+
+  // Staff & Authenticated Users Real-time Firestore Listeners (Secure RBAC)
+  useEffect(() => {
+    let unsubs: (() => void)[] = [];
+
+    if (isStaff) {
+      // 1. Staff can view all orders
+      const ordersRef = collection(db, 'orders');
+      const unsubOrders = onSnapshot(ordersRef, (querySnap) => {
+        const ordList: Order[] = [];
+        querySnap.forEach((d) => ordList.push({ ...d.data(), id: d.id } as Order));
+        ordList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(ordList);
+      }, (err) => console.warn('Staff orders snapshot:', err));
+      unsubs.push(unsubOrders);
+
+      // 2. Staff can view all affiliates
+      const affiliatesRef = collection(db, 'affiliates');
+      const unsubAffiliates = onSnapshot(affiliatesRef, (querySnap) => {
+        const affList: AffiliateProfile[] = [];
+        querySnap.forEach((d) => affList.push({ ...d.data(), id: d.id } as AffiliateProfile));
+        setAffiliates(affList.length > 0 ? affList : INITIAL_AFFILIATES);
+      }, (err) => console.warn('Staff affiliates snapshot:', err));
+      unsubs.push(unsubAffiliates);
+
+      // 3. Staff can view all payouts
+      const payoutsRef = collection(db, 'payouts');
+      const unsubPayouts = onSnapshot(payoutsRef, (querySnap) => {
+        const payList: PayoutRequest[] = [];
+        querySnap.forEach((d) => payList.push({ ...d.data(), id: d.id } as PayoutRequest));
+        payList.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
+        setPayouts(payList.length > 0 ? payList : INITIAL_PAYOUTS);
+      }, (err) => console.warn('Staff payouts snapshot:', err));
+      unsubs.push(unsubPayouts);
+
+      // 4. Staff can view users
+      const usersRef = collection(db, 'users');
+      const unsubUsers = onSnapshot(usersRef, (querySnap) => {
+        const uList: UserProfile[] = [];
+        querySnap.forEach((d) => uList.push({ ...d.data(), uid: d.id } as UserProfile));
+        setAllUsers(uList);
+      }, (err) => console.warn('Staff users snapshot:', err));
+      unsubs.push(unsubUsers);
+    } else if (currentUser) {
+      // Authenticated customer: listen ONLY to their own orders
+      const userOrdersQuery = query(collection(db, 'orders'), where('userId', '==', currentUser.uid));
+      const unsubUserOrders = onSnapshot(userOrdersQuery, (querySnap) => {
+        const ordList: Order[] = [];
+        querySnap.forEach((d) => ordList.push({ ...d.data(), id: d.id } as Order));
+        ordList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(ordList);
+      }, (err) => console.warn('User orders snapshot:', err));
+      unsubs.push(unsubUserOrders);
+    } else {
+      // Guest visitor: load their own saved orders from local storage
+      try {
+        const guestSaved = JSON.parse(localStorage.getItem('florafaten_my_orders') || '[]');
+        if (Array.isArray(guestSaved)) {
+          setOrders(guestSaved);
+        }
+      } catch {}
+    }
+
+    return () => {
+      unsubs.forEach((unsub) => unsub());
+    };
+  }, [isStaff, currentUser]);
 
   // Current user's affiliate profile (matched by userId or email)
   const currentAffiliateProfile = React.useMemo(() => {
@@ -1102,8 +1121,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setAppliedAffiliate(null);
   };
 
-  // Order Creation (persisted in Firestore with Affiliate Attribution and strict verification)
-  const createOrder = async (orderPayload: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>): Promise<Order> => {
+  // Order Creation (persisted in Firestore with Atomic Transaction, Stock Lock, Idempotency, and Strict Verification)
+  const createOrder = async (
+    orderPayload: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>,
+    customOrderId?: string
+  ): Promise<Order> => {
+    // 0. Strict Makkah delivery zone enforcement
+    const forbiddenCities = ['جدة', 'الرياض', 'الدمام', 'المدينة', 'الطائف', 'الخبر', 'jeddah', 'riyadh', 'dammam'];
+    const deliveryCityLower = (orderPayload.deliveryCity || '').toLowerCase();
+    const deliveryDistrictLower = (orderPayload.deliveryDistrict || '').toLowerCase();
+    const deliveryAddressLower = (orderPayload.deliveryAddress || '').toLowerCase();
+    const combinedAddress = `${deliveryCityLower} ${deliveryDistrictLower} ${deliveryAddressLower}`;
+
+    const containsForbiddenCity = forbiddenCities.some(city => combinedAddress.includes(city));
+    if (containsForbiddenCity || !deliveryCityLower.includes('مكة')) {
+      throw new Error('خدمة التوصيل لدى متجر فلورا فاتن متاحة حصرياً داخل أحياء مكة المكرمة فقط. لا يمكن إتمام الطلب لأي مدينة أخرى.');
+    }
+
     // 1. Validate delivery date in Makkah timezone (2 to 5 days strictly)
     if (!orderPayload.deliveryDate || !isValidMakkahDeliveryDate(orderPayload.deliveryDate)) {
       throw new Error('تاريخ التوصيل المختار غير صالح. وفق سياسة المتجر، يجب أن يكون موعد التوصيل بين يومين إلى 5 أيام من تاريخ الطلب بتوقيت مكة المكرمة.');
@@ -1142,13 +1176,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    // 4. Delivery fee calculation from city settings
+    // 4. Strict minimum order amount enforcement inside order creation
+    const minOrder = settings.minOrderAmount ?? 50;
+    if (verifiedSubtotal < minOrder) {
+      throw new Error(`الحد الأدنى لقيمة الطلب هو ${minOrder} ر.س. القيمة الحالية للسلة هي ${verifiedSubtotal} ر.س.`);
+    }
+
+    // 5. Unified Free Delivery Threshold check (strictly settings.freeDeliveryThreshold ?? 300)
     const selectedCity = (settings.cities || []).find(c => c.name === orderPayload.deliveryCity);
-    const rawDeliveryFee = selectedCity?.fee ?? settings.deliveryFeeDefault ?? 25;
-    const isFreeDelivery = verifiedSubtotal >= (settings.freeDeliveryThreshold || 350);
+    const rawDeliveryFee = selectedCity?.fee ?? settings.deliveryFeeDefault ?? 20;
+    const freeDeliveryThreshold = settings.freeDeliveryThreshold ?? 300;
+    const isFreeDelivery = verifiedSubtotal >= freeDeliveryThreshold;
     const verifiedDeliveryFee = isFreeDelivery ? 0 : rawDeliveryFee;
 
-    // 5. Discount calculation
+    // 6. Discount calculation
     let verifiedDiscount = 0;
     if (orderPayload.couponCode && appliedCoupon && appliedCoupon.code.toUpperCase() === orderPayload.couponCode.toUpperCase()) {
       if (verifiedSubtotal >= appliedCoupon.minOrderAmount) {
@@ -1169,7 +1210,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const timestamp = new Date().toISOString();
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `FF-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${randomSuffix}`;
-    const orderId = `order_${Date.now()}_${randomSuffix}`;
+    const orderId = customOrderId || `order_${Date.now()}_${randomSuffix}`;
 
     // Determine affiliate attribution
     let affiliateForOrder = appliedAffiliate;
@@ -1216,21 +1257,49 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      await setDoc(doc(db, 'orders', orderId), newOrder);
+      const orderRef = doc(db, 'orders', orderId);
 
-      // Decrement stock in Firestore for ordered products
-      for (const item of newOrder.items) {
-        const prodRef = doc(db, 'products', item.productId);
-        const prod = products.find(p => p.id === item.productId);
-        if (prod && prod.stock > 0) {
-          await updateDoc(prodRef, {
-            stock: Math.max(0, prod.stock - item.quantity),
-            updatedAt: timestamp
-          }).catch(() => {});
+      // Execute Atomic Firestore Transaction:
+      // Verifies live product stock, decrements stock atomically, and writes the order with idempotency check
+      await runTransaction(db, async (transaction) => {
+        // Idempotency: If this exact orderId was already committed (e.g., duplicate request / network retry), return immediately
+        const existingOrderDoc = await transaction.get(orderRef);
+        if (existingOrderDoc.exists()) {
+          return existingOrderDoc.data() as Order;
         }
-      }
 
-      // If affiliate was attributed, update affiliate's stats and log transaction
+        // Live stock verification for all ordered products
+        const stockUpdates: { ref: any; newStock: number }[] = [];
+        for (const item of newOrder.items) {
+          const prodRef = doc(db, 'products', item.productId);
+          const prodDoc = await transaction.get(prodRef);
+          if (prodDoc.exists()) {
+            const currentStock = prodDoc.data().stock;
+            if (currentStock !== undefined) {
+              if (currentStock < item.quantity) {
+                throw new Error(`عذراً، نفدت الكمية المطلوبة من "${item.name}". الكمية المتبقية هي (${currentStock}) قطعة فقط.`);
+              }
+              stockUpdates.push({
+                ref: prodRef,
+                newStock: Math.max(0, currentStock - item.quantity)
+              });
+            }
+          }
+        }
+
+        // Apply atomic stock decrements
+        for (const update of stockUpdates) {
+          transaction.update(update.ref, {
+            stock: update.newStock,
+            updatedAt: timestamp
+          });
+        }
+
+        // Atomically set the order document
+        transaction.set(orderRef, newOrder);
+      });
+
+      // Update affiliate stats if applicable
       if (affiliateForOrder && calculatedCommission > 0) {
         const affDocRef = doc(db, 'affiliates', affiliateForOrder.id);
         await updateDoc(affDocRef, {
@@ -1263,12 +1332,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }).catch(() => {});
       }
 
+      // Save to local device orders for guest persistence
+      try {
+        const existingSaved = JSON.parse(localStorage.getItem('florafaten_my_orders') || '[]');
+        const updatedSaved = [newOrder, ...existingSaved.filter((o: Order) => o.id !== newOrder.id)];
+        localStorage.setItem('florafaten_my_orders', JSON.stringify(updatedSaved.slice(0, 20)));
+        setOrders(prev => [newOrder, ...prev.filter(o => o.id !== newOrder.id)]);
+      } catch {}
+
       clearCart();
       return newOrder;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `orders/${orderId}`);
       throw error;
     }
+  };
+
+  // Dedicated single-order tracking lookup for customer privacy
+  const trackOrder = async (orderNumberOrId: string): Promise<Order | null> => {
+    const term = orderNumberOrId.trim();
+    if (!term) return null;
+
+    // Check memory first
+    const inMem = orders.find(o => 
+      o.orderNumber.toLowerCase() === term.toLowerCase() || 
+      o.id.toLowerCase() === term.toLowerCase()
+    );
+    if (inMem) return inMem;
+
+    try {
+      // Query by orderNumber in Firestore
+      const q = query(collection(db, 'orders'), where('orderNumber', '==', term.toUpperCase()));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        return { ...snap.docs[0].data(), id: snap.docs[0].id } as Order;
+      }
+
+      // Query by document ID in Firestore
+      const directDoc = await getDoc(doc(db, 'orders', term));
+      if (directDoc.exists()) {
+        return { ...directDoc.data(), id: directDoc.id } as Order;
+      }
+    } catch (e) {
+      console.warn('Track order lookup error:', e);
+    }
+
+    return null;
   };
 
   // Affiliate Program Actions
@@ -2108,6 +2217,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       applyCoupon,
       removeCoupon,
       createOrder,
+      trackOrder,
       affiliates,
       payouts,
       currentAffiliateProfile,
