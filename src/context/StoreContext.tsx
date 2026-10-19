@@ -286,6 +286,9 @@ interface StoreContextType {
   saveCoupon: (coupon: Partial<Coupon> & { code: string; discountValue: number }) => Promise<void>;
   deleteCoupon: (couponId: string) => Promise<void>;
   deleteProductReview: (reviewId: string) => Promise<void>;
+  uploadProductImage: (file: File) => Promise<string>;
+  uploadCategoryImage: (file: File) => Promise<string>;
+  clearAllMockImages: () => Promise<{ productsCleaned: number; categoriesCleaned: number; bannersCleaned: number }>;
   resetToInitialData: () => Promise<void>;
 }
 
@@ -550,7 +553,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const unsubCategories = onSnapshot(categoriesRef, async (querySnap) => {
           if (!querySnap.empty) {
             const catList: Category[] = [];
-            querySnap.forEach((d) => catList.push({ ...d.data(), id: d.id } as Category));
+            querySnap.forEach((d) => {
+              const data = d.data() as Category;
+              const img = data.image?.includes('unsplash.com') ? '' : (data.image || '');
+              catList.push({ ...data, id: d.id, image: img });
+            });
             catList.sort((a, b) => (a.order || 0) - (b.order || 0));
             setCategories(catList);
           } else {
@@ -566,7 +573,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const unsubProducts = onSnapshot(productsRef, async (querySnap) => {
           if (!querySnap.empty) {
             const prodList: Product[] = [];
-            querySnap.forEach((d) => prodList.push({ ...d.data(), id: d.id } as Product));
+            querySnap.forEach((d) => {
+              const data = d.data() as Product;
+              const img = data.image?.includes('unsplash.com') ? '' : (data.image || '');
+              const imgs = (data.images || []).filter(i => i && !i.includes('unsplash.com'));
+              prodList.push({ ...data, id: d.id, image: img, images: imgs });
+            });
             setProducts(prodList);
           } else {
             for (const prod of INITIAL_PRODUCTS) {
@@ -669,7 +681,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const unsubBanners = onSnapshot(bannersRef, async (querySnap) => {
           if (!querySnap.empty) {
             const bList: Banner[] = [];
-            querySnap.forEach((d) => bList.push({ ...d.data(), id: d.id } as Banner));
+            querySnap.forEach((d) => {
+              const data = d.data() as Banner;
+              const img = data.imageUrl?.includes('unsplash.com') ? '' : (data.imageUrl || '');
+              const mImg = data.mobileImageUrl?.includes('unsplash.com') ? '' : (data.mobileImageUrl || '');
+              bList.push({ ...data, id: d.id, imageUrl: img, mobileImageUrl: mImg });
+            });
             bList.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
             setBanners(bList);
           } else {
@@ -1460,6 +1477,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const prodId = productData.id || `prod_${Date.now()}`;
     const timestamp = new Date().toISOString();
 
+    const cleanImg = (productData.image && !productData.image.includes('unsplash.com')) ? productData.image : '';
+    const cleanImgs = (productData.images || []).filter(i => i && !i.includes('unsplash.com'));
+
     const fullProduct: Product = {
       id: prodId,
       name: productData.name,
@@ -1469,8 +1489,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       salePrice: productData.salePrice ? Number(productData.salePrice) : undefined,
       category: productData.category,
       categoryName: categories.find(c => c.slug === productData.category)?.name || 'عام',
-      image: productData.image || 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
-      images: productData.images?.length ? productData.images : [productData.image || 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80'],
+      image: cleanImg,
+      images: cleanImgs.length ? cleanImgs : (cleanImg ? [cleanImg] : []),
       stock: productData.stock !== undefined ? Number(productData.stock) : 10,
       featured: productData.featured ?? false,
       isBestSeller: productData.isBestSeller ?? false,
@@ -1510,12 +1530,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const saveCategory = async (categoryData: Partial<Category> & { name: string; slug: string }) => {
     const catId = categoryData.id || `cat_${categoryData.slug}`;
+    const cleanCatImg = (categoryData.image && !categoryData.image.includes('unsplash.com')) ? categoryData.image : '';
     const fullCategory: Category = {
       id: catId,
       name: categoryData.name,
       nameEn: categoryData.nameEn || '',
       slug: categoryData.slug,
-      image: categoryData.image || 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
+      image: cleanCatImg,
       description: categoryData.description || '',
       order: categoryData.order || categories.length + 1
     };
@@ -1847,17 +1868,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const uploadBannerImage = async (file: File): Promise<string> => {
+  const uploadImageFile = async (file: File, folder: string): Promise<string> => {
     try {
       const extension = file.name.split('.').pop() || 'jpg';
-      const filename = `banners/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
+      const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
       const fileRef = storageRef(storage, filename);
       const snapshot = await uploadBytes(fileRef, file, {
         contentType: file.type || 'image/jpeg'
       });
       return await getDownloadURL(snapshot.ref);
     } catch (storageError) {
-      console.warn('Storage upload fallback to high-res data URL:', storageError);
+      console.warn(`Storage upload for ${folder} fallback to Data URL:`, storageError);
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -1866,6 +1887,119 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
   };
+
+  const uploadBannerImage = async (file: File): Promise<string> => {
+    return uploadImageFile(file, 'banners');
+  };
+
+  const uploadProductImage = async (file: File): Promise<string> => {
+    return uploadImageFile(file, 'products');
+  };
+
+  const uploadCategoryImage = async (file: File): Promise<string> => {
+    return uploadImageFile(file, 'categories');
+  };
+
+  const clearAllMockImages = async () => {
+    let productsCleaned = 0;
+    let categoriesCleaned = 0;
+    let bannersCleaned = 0;
+
+    try {
+      // 1. Clean Products in Firestore
+      const prodsSnap = await getDocs(collection(db, 'products'));
+      for (const docSnap of prodsSnap.docs) {
+        const data = docSnap.data() as Product;
+        let needsUpdate = false;
+        let newImage = data.image || '';
+        let newImages = data.images || [];
+
+        if (newImage.includes('unsplash.com')) {
+          newImage = '';
+          needsUpdate = true;
+        }
+        if (newImages.some(img => img && img.includes('unsplash.com'))) {
+          newImages = newImages.filter(img => img && !img.includes('unsplash.com'));
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          await updateDoc(doc(db, 'products', docSnap.id), {
+            image: newImage,
+            images: newImages,
+            updatedAt: new Date().toISOString()
+          }).catch(console.warn);
+          productsCleaned++;
+        }
+      }
+
+      // 2. Clean Categories in Firestore
+      const catsSnap = await getDocs(collection(db, 'categories'));
+      for (const docSnap of catsSnap.docs) {
+        const data = docSnap.data() as Category;
+        if (data.image && data.image.includes('unsplash.com')) {
+          await updateDoc(doc(db, 'categories', docSnap.id), {
+            image: '',
+            updatedAt: new Date().toISOString()
+          }).catch(console.warn);
+          categoriesCleaned++;
+        }
+      }
+
+      // 3. Clean Banners in Firestore
+      const bansSnap = await getDocs(collection(db, 'banners'));
+      for (const docSnap of bansSnap.docs) {
+        const data = docSnap.data() as Banner;
+        let needsUpdate = false;
+        let img = data.imageUrl || '';
+        let mImg = data.mobileImageUrl || '';
+        if (img.includes('unsplash.com')) {
+          img = '';
+          needsUpdate = true;
+        }
+        if (mImg.includes('unsplash.com')) {
+          mImg = '';
+          needsUpdate = true;
+        }
+        if (needsUpdate) {
+          await updateDoc(doc(db, 'banners', docSnap.id), {
+            imageUrl: img,
+            mobileImageUrl: mImg,
+            updatedAt: new Date().toISOString()
+          }).catch(console.warn);
+          bannersCleaned++;
+        }
+      }
+
+      // Update in-memory state
+      setProducts(prev => prev.map(p => ({
+        ...p,
+        image: p.image?.includes('unsplash.com') ? '' : p.image,
+        images: (p.images || []).filter(img => !img.includes('unsplash.com'))
+      })));
+      setCategories(prev => prev.map(c => ({
+        ...c,
+        image: c.image?.includes('unsplash.com') ? '' : c.image
+      })));
+      setBanners(prev => prev.map(b => ({
+        ...b,
+        imageUrl: b.imageUrl?.includes('unsplash.com') ? '' : b.imageUrl,
+        mobileImageUrl: b.mobileImageUrl?.includes('unsplash.com') ? '' : b.mobileImageUrl
+      })));
+    } catch (err) {
+      console.warn('clearAllMockImages error:', err);
+    }
+
+    return { productsCleaned, categoriesCleaned, bannersCleaned };
+  };
+
+  // Auto-clean any legacy mock unsplash images on start
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      clearAllMockImages().catch(console.warn);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const updateBannerSliderSettings = async (sliderSettings: Partial<BannerSliderSettings>): Promise<void> => {
     try {
@@ -1998,6 +2132,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       getProductReviews,
       addProductReview,
       deleteProductReview,
+      uploadProductImage,
+      uploadCategoryImage,
+      clearAllMockImages,
       resetToInitialData
     }}>
       {children}

@@ -229,11 +229,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         <div className="w-full md:w-1/2 bg-[#FFF9FA] p-5 sm:p-6 flex flex-col justify-between relative border-b md:border-b-0 md:border-l border-[#F8DDE6]">
           <div>
             <div className="relative aspect-4/5 rounded-2xl overflow-hidden shadow-xs border border-[#F8DDE6] bg-white">
-              <img
-                src={selectedImage}
-                alt={liveProduct.name}
-                className="w-full h-full object-cover transition-all duration-500"
-              />
+              {selectedImage ? (
+                <img
+                  src={selectedImage}
+                  alt={liveProduct.name}
+                  className="w-full h-full object-cover transition-all duration-500"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-[#FFF5F8] via-[#FDF0F4] to-[#FCE6EE] select-none">
+                  <div className="w-16 h-16 rounded-2xl bg-white/90 shadow-xs flex items-center justify-center mb-3 text-[#C9A46A] border border-pink-100">
+                    <Sparkles className="w-8 h-8" />
+                  </div>
+                  <span className="font-extrabold text-[#4A2030] text-sm mb-1">{liveProduct.name}</span>
+                  <span className="text-xs text-[#AD647D] bg-white/80 px-3 py-1 rounded-full border border-pink-100 shadow-2xs font-medium">
+                    بانتظار إضافة الصورة
+                  </span>
+                </div>
+              )}
 
               {/* Floating Badges */}
               <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10 items-end">
@@ -594,11 +606,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                             className="bg-[#FFF9FA] border border-[#F8DDE6] rounded-2xl p-2.5 flex items-center justify-between gap-2.5 hover:border-[#E7A0B4] transition shadow-2xs"
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <img 
-                                src={comp.image} 
-                                alt={comp.name} 
-                                className="w-11 h-11 rounded-xl object-cover shrink-0 border border-pink-100" 
-                              />
+                              {comp.image ? (
+                                <img 
+                                  src={comp.image} 
+                                  alt={comp.name} 
+                                  className="w-11 h-11 rounded-xl object-cover shrink-0 border border-pink-100" 
+                                />
+                              ) : (
+                                <div className="w-11 h-11 rounded-xl bg-pink-50 border border-pink-100 shrink-0 flex items-center justify-center text-[#C9A46A]">
+                                  <Sparkles className="w-4 h-4" />
+                                </div>
+                              )}
                               <div className="min-w-0">
                                 <h5 className="text-[11px] font-bold text-[#2D141E] truncate">{comp.name}</h5>
                                 <span className="text-[11px] font-black text-[#AD647D]">

@@ -212,23 +212,29 @@ export const HeroBannerSlider: React.FC<HeroBannerSliderProps> = ({
                   >
                     {/* Picture with responsive mobile & desktop source */}
                     <div className={`relative w-full ${aspectClass} overflow-hidden bg-gradient-to-tr from-[#FFF0F4] to-[#F8DDE6]`}>
-                      <picture>
-                        {banner.mobileImageUrl && (
-                          <source 
-                            media="(max-width: 640px)" 
-                            srcSet={banner.mobileImageUrl} 
+                      {banner.imageUrl ? (
+                        <picture>
+                          {banner.mobileImageUrl && (
+                            <source 
+                              media="(max-width: 640px)" 
+                              srcSet={banner.mobileImageUrl} 
+                            />
+                          )}
+                          <img
+                            src={banner.imageUrl}
+                            alt={banner.altText || banner.title}
+                            loading={index === 0 ? "eager" : "lazy"}
+                            decoding="async"
+                            {...(index === 0 ? { fetchPriority: "high" as const } : {})}
+                            className="w-full h-full object-cover group-hover:scale-[1.015] transition-transform duration-700 ease-out pointer-events-none"
+                            style={{ objectFit: banner.objectFit || 'cover' }}
                           />
-                        )}
-                        <img
-                          src={banner.imageUrl}
-                          alt={banner.altText || banner.title}
-                          loading={index === 0 ? "eager" : "lazy"}
-                          decoding="async"
-                          {...(index === 0 ? { fetchPriority: "high" as const } : {})}
-                          className="w-full h-full object-cover group-hover:scale-[1.015] transition-transform duration-700 ease-out pointer-events-none"
-                          style={{ objectFit: banner.objectFit || 'cover' }}
-                        />
-                      </picture>
+                        </picture>
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-r from-[#2D141E] via-[#4A2030] to-[#5D2B3D] flex items-center justify-center p-8 relative overflow-hidden">
+                          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#FFF_1px,transparent_1px)] [background-size:20px_20px]" />
+                        </div>
+                      )}
 
                       {/* Subtle Vignette Overlay for Text Legibility */}
                       {(banner.title || banner.subtitle || banner.buttonText) && (

@@ -26,6 +26,7 @@ export interface ProductReview {
 }
 
 export type OccasionType = 
+  | 'celebrations'
   | 'birthday'
   | 'wedding'
   | 'graduation'

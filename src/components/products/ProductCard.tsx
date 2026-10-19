@@ -28,15 +28,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
         onClick={() => onOpenDetails(product)}
         className="relative aspect-4/5 overflow-hidden bg-[#FFF9FA] cursor-pointer"
       >
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
-          loading="lazy"
-        />
-
-        {/* Soft Vignette / Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
+        {product.image ? (
+          <>
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
+              loading="lazy"
+            />
+            {/* Soft Vignette / Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#FFF5F8] via-[#FDF0F4] to-[#FCE6EE] p-4 text-center select-none group-hover:scale-102 transition-transform duration-500">
+            <div className="w-12 h-12 rounded-2xl bg-white/90 shadow-xs flex items-center justify-center mb-2 text-[#C9A46A] border border-pink-100">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-bold text-[#4A2030] line-clamp-1">{product.name}</span>
+            <span className="text-[10px] text-[#AD647D] mt-1.5 font-medium bg-white/80 px-2 py-0.5 rounded-full border border-pink-100/80 shadow-2xs">
+              بانتظار إضافة الصورة
+            </span>
+          </div>
+        )}
 
         {/* Floating Badges - Top Right */}
         <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 flex flex-col gap-1.5 z-10 items-end">

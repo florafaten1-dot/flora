@@ -112,33 +112,45 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="lg:col-span-5 relative w-full min-w-0">
               <div className="relative mx-auto max-w-sm sm:max-w-md">
                 
-                {/* Main Hero Image */}
-                <div className="aspect-4/5 rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-1 ring-[#F8DDE6] relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1000&q=85"
-                    alt="باقة فلورا فاتن الوردية"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                  />
+                {/* Main Hero Visual Card */}
+                <div className="aspect-4/5 rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-1 ring-[#F8DDE6] relative bg-gradient-to-tr from-[#FFF0F4] via-[#FDF3F6] to-[#FFF9FA]">
+                  {products.find(p => p.image)?.image ? (
+                    <img
+                      src={products.find(p => p.image)?.image}
+                      alt="باقة فلورا فاتن الوردية"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center relative overflow-hidden select-none">
+                      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#AD647D_1px,transparent_1px)] [background-size:16px_16px]" />
+                      <div className="w-20 h-20 rounded-3xl bg-white shadow-md flex items-center justify-center mb-4 text-[#C9A46A] border border-pink-100 relative z-10 animate-bounce duration-1000">
+                        <Flower2 className="w-10 h-10 text-[#AD647D]" />
+                      </div>
+                      <span className="text-[11px] font-bold tracking-widest text-[#C9A46A] uppercase mb-1">Flora Faten Boutique</span>
+                      <h3 className="text-lg font-black text-[#2D141E] font-serif-lux">باقات ورد الساتان الفاخر</h3>
+                      <p className="text-xs text-[#5D2B3D]/75 mt-1 max-w-[200px]">مصنوعة يدويًا بحب في مكة المكرمة لتدوم ذكرياتكم أبدًا</p>
+                    </div>
+                  )}
                   
                   {/* Floating Overlay Card 1 */}
-                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2 sm:gap-2.5 max-w-[85%]">
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2 sm:gap-2.5 max-w-[85%] z-10">
                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FFF0F4] flex items-center justify-center shrink-0">
                       <Flower2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#AD647D]" />
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[9px] sm:text-[10px] text-gray-500 block">قطف يومي</span>
-                      <span className="text-[11px] sm:text-xs font-black text-[#2D141E] truncate block">جوري وبيوني ملكي</span>
+                      <span className="text-[9px] sm:text-[10px] text-gray-500 block">صناعة يدوية</span>
+                      <span className="text-[11px] sm:text-xs font-black text-[#2D141E] truncate block">ورد ساتان فاخر</span>
                     </div>
                   </div>
 
                   {/* Floating Overlay Card 2 */}
-                  <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2 sm:gap-2.5 max-w-[85%]">
+                  <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-[#F8DDE6] shadow-lg flex items-center gap-2 sm:gap-2.5 max-w-[85%] z-10">
                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
                       <Star className="w-4 h-4 sm:w-5 sm:h-5 text-[#C9A46A] fill-[#C9A46A]" />
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[9px] sm:text-[10px] text-gray-500 block">تقييم العملاء</span>
-                      <span className="text-[10px] sm:text-xs font-black text-[#AD647D] truncate block">4.9 / 5 (أكثر من 1500 عميل)</span>
+                      <span className="text-[9px] sm:text-[10px] text-gray-500 block">مكة المكرمة</span>
+                      <span className="text-[10px] sm:text-xs font-black text-[#AD647D] truncate block">توصيل لباب بيتك</span>
                     </div>
                   </div>
                 </div>
@@ -181,12 +193,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onClick={() => onNavigate(`cat_${cat.slug}`)}
               className="group bg-white rounded-3xl border border-[#F8DDE6] hover:border-[#E7A0B4] p-3 shadow-2xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col items-center text-center overflow-hidden"
             >
-              <div className="w-full aspect-square rounded-2xl overflow-hidden mb-3 bg-[#FFF9FA]">
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
+              <div className="w-full aspect-square rounded-2xl overflow-hidden mb-3 bg-[#FFF9FA] flex items-center justify-center">
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#FFF5F8] to-[#FCE6EE] text-[#AD647D] p-3">
+                    <Flower2 className="w-8 h-8 text-[#C9A46A] mb-1.5 group-hover:scale-110 transition-transform" />
+                    <span className="text-[11px] font-bold text-[#4A2030]">{cat.name}</span>
+                  </div>
+                )}
               </div>
               <h3 className="font-bold text-xs sm:text-sm text-[#2D141E] group-hover:text-[#AD647D] transition">
                 {cat.name}

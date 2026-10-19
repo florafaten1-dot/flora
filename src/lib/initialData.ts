@@ -13,12 +13,12 @@ import {
 
 export const STORE_OCCASIONS: OccasionInfo[] = [
   {
-    id: 'birthday',
-    name: 'أعياد الميلاد',
-    nameEn: 'Birthdays',
-    emoji: '🎂',
-    description: 'باقات مبهجة وبالونات وشوكولاتة للاحتفال بيوم الميلاد',
-    badge: 'الأكثر فرحاً',
+    id: 'celebrations',
+    name: 'الاحتفالات والمناسبات الخاصة',
+    nameEn: 'Special Celebrations',
+    emoji: '✨',
+    description: 'باقات وتنسيقات ملكية استثنائية للاحتفاء بأجمل اللحظات',
+    badge: 'فخامة وتميز',
     bgGradient: 'from-pink-500/15 via-rose-400/10 to-amber-200/15'
   },
   {
@@ -92,7 +92,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'باقات الوردي والأبيض',
     nameEn: 'Pink & White Bouquets',
     slug: 'pink-white-bouquets',
-    image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'باقات استثنائية بتناغم اللون الوردي والأبيض الملكي',
     order: 1
   },
@@ -101,7 +101,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'الورود الطبيعية الهولندية',
     nameEn: 'Natural Flowers',
     slug: 'natural-flowers',
-    image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'ورود قطف يومي منعشة ومختارة بعناية فائقة',
     order: 2
   },
@@ -110,7 +110,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'بوكسات الفخامة والجلد',
     nameEn: 'Luxury Boxes',
     slug: 'luxury-boxes',
-    image: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'صناديق هدايا فاخرة بتنسيق ملكي مبهر',
     order: 3
   },
@@ -119,7 +119,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'ورد وشوكولاتة فاخرة',
     nameEn: 'Flowers & Chocolate',
     slug: 'flowers-chocolate',
-    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'أرقى أنواع الشوكولاتة البلجيكية مع عبير الزهور',
     order: 4
   },
@@ -128,7 +128,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'الورود الصناعية الفاخرة',
     nameEn: 'Artificial Flowers',
     slug: 'artificial-flowers',
-    image: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'تنسيقات حريرية دائمة بجمال لا يذبل أبدًا',
     order: 5
   },
@@ -137,7 +137,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'بالونات وتوزيعات هيليوم',
     nameEn: 'Balloons & Favors',
     slug: 'balloons-party',
-    image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'بالونات هيليوم أنيقة ومخصصة لجميع المناسبات السعيدة',
     order: 6
   },
@@ -146,7 +146,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'هدايا المناسبات والمواليد',
     nameEn: 'Occasions & Gifts',
     slug: 'occasions-gifts',
-    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
+    image: '',
     description: 'تنسيقات التخرج والزفاف والمواليد الجدد بتفاصيل ساحرة',
     order: 7
   }
@@ -162,11 +162,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     salePrice: 265,
     category: 'pink-white-bouquets',
     categoryName: 'باقات الوردي والأبيض',
-    image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1000&q=85',
-      'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 25,
     featured: true,
     isBestSeller: true,
@@ -182,7 +179,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       { id: 'a2', name: 'بالون هيليوم وردي "ألف مبروك"', price: 35, icon: '🎈' },
       { id: 'a3', name: 'فازة زجاجية كريستالية', price: 45, icon: '🏺' }
     ],
-    occasions: ['wedding', 'romantic', 'gratitude', 'birthday'],
+    occasions: ['wedding', 'romantic', 'gratitude', 'celebrations'],
     rating: 4.9,
     reviewsCount: 38,
     allowCardMessage: true,
@@ -197,10 +194,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 380,
     category: 'luxury-boxes',
     categoryName: 'بوكسات الفخامة والجلد',
-    image: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 18,
     featured: true,
     isBestSeller: true,
@@ -214,7 +209,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       { id: 'a1', name: 'شوكولاتة إضافية فاخرة', price: 65, icon: '🍫' },
       { id: 'a4', name: 'كرت إهداء بختم شمعي ذهبي', price: 20, icon: '💌' }
     ],
-    occasions: ['birthday', 'wedding', 'romantic', 'seasonal'],
+    occasions: ['celebrations', 'wedding', 'romantic', 'seasonal'],
     rating: 5.0,
     reviewsCount: 22,
     allowCardMessage: true,
@@ -230,10 +225,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     salePrice: 310,
     category: 'flowers-chocolate',
     categoryName: 'ورد وشوكولاتة فاخرة',
-    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 15,
     featured: true,
     isBestSeller: false,
@@ -246,7 +239,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a2', name: 'بالون هيليوم "يوم سعيد"', price: 30, icon: '🎈' }
     ],
-    occasions: ['birthday', 'gratitude', 'apology', 'seasonal'],
+    occasions: ['celebrations', 'gratitude', 'apology', 'seasonal'],
     rating: 4.8,
     reviewsCount: 19,
     allowCardMessage: true,
@@ -261,10 +254,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 190,
     category: 'balloons-party',
     categoryName: 'بالونات وتوزيعات هيليوم',
-    image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 30,
     featured: true,
     isBestSeller: false,
@@ -277,7 +268,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a5', name: 'إضافة اسم مطبوع بالذهب على البالون الكبير', price: 25, icon: '✨' }
     ],
-    occasions: ['birthday', 'graduation', 'newborn', 'seasonal'],
+    occasions: ['celebrations', 'graduation', 'newborn', 'seasonal'],
     rating: 4.7,
     reviewsCount: 14,
     allowCardMessage: true,
@@ -292,10 +283,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 260,
     category: 'artificial-flowers',
     categoryName: 'الورود الصناعية الفاخرة',
-    image: 'https://images.unsplash.com/photo-1533616688419-b7a585564566?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1533616688419-b7a585564566?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 20,
     featured: false,
     isBestSeller: false,
@@ -324,10 +313,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     salePrice: 385,
     category: 'occasions-gifts',
     categoryName: 'هدايا المناسبات والمواليد',
-    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 12,
     featured: true,
     isBestSeller: true,
@@ -340,7 +327,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a7', name: 'لوح أكريليك محفور باسم المولودة', price: 50, icon: '🎀' }
     ],
-    occasions: ['newborn', 'birthday', 'gratitude'],
+    occasions: ['newborn', 'celebrations', 'gratitude'],
     rating: 5.0,
     reviewsCount: 29,
     allowCardMessage: true,
@@ -355,10 +342,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 240,
     category: 'natural-flowers',
     categoryName: 'الورود الطبيعية الهولندية',
-    image: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 22,
     featured: false,
     isBestSeller: true,
@@ -386,10 +371,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 275,
     category: 'occasions-gifts',
     categoryName: 'هدايا المناسبات والمواليد',
-    image: 'https://images.unsplash.com/photo-1546842931-886c185b4c8c?auto=format&fit=crop&w=1000&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1546842931-886c185b4c8c?auto=format&fit=crop&w=1000&q=85'
-    ],
+    image: '',
+    images: [],
     stock: 14,
     featured: false,
     isBestSeller: false,
@@ -402,7 +385,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     addons: [
       { id: 'a8', name: 'وشاح تخرج ساتان وردي مذهب', price: 45, icon: '🎓' }
     ],
-    occasions: ['graduation', 'gratitude', 'birthday'],
+    occasions: ['graduation', 'gratitude', 'celebrations'],
     rating: 4.9,
     reviewsCount: 11,
     allowCardMessage: true,
@@ -527,10 +510,10 @@ export const INITIAL_BANNERS: Banner[] = [
   {
     id: 'banner-royal-pink',
     title: 'تشكيلة الوردي والأبيض الملكية',
-    subtitle: 'أرقى باقات الجوري والبيوني الهولندي بتغليف شمعي فاخر وبطاقات إهداء مخصصة',
-    imageUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1920&q=85',
-    mobileImageUrl: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=900&q=85',
-    altText: 'باقات الورد الملكية باللون الوردي والأبيض من متجر فلورا فاتن',
+    subtitle: 'أرقى باقات ورد الساتان الفاخر بتغليف ملكي وبطاقات إهداء مخصصة',
+    imageUrl: '',
+    mobileImageUrl: '',
+    altText: 'باقات ورد الساتان الملكية من متجر فلورا فاتن بمكة المكرمة',
     linkType: 'category',
     linkValue: 'pink-white-bouquets',
     buttonText: 'تسوق التشكيلة الملكية',
@@ -543,9 +526,9 @@ export const INITIAL_BANNERS: Banner[] = [
   {
     id: 'banner-occasions-luxury',
     title: 'تنسيقات المناسبات والشوكولاتة الفاخرة',
-    subtitle: 'هدايا استثنائية لحفلات التخرج، الزفاف، والمواليد مع قوالب الشوكولاتة البلجيكية',
-    imageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=1920&q=85',
-    mobileImageUrl: 'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?auto=format&fit=crop&w=900&q=85',
+    subtitle: 'هدايا استثنائية لحفلات التخرج، والزفاف، والمواليد مع قوالب الشوكولاتة البلجيكية',
+    imageUrl: '',
+    mobileImageUrl: '',
     altText: 'بوكسات الهدايا وتنسيقات المناسبات السعيدة',
     linkType: 'category',
     linkValue: 'occasions-gifts',
@@ -559,13 +542,13 @@ export const INITIAL_BANNERS: Banner[] = [
   {
     id: 'banner-balloons-vip',
     title: 'بالونات الهيليوم وكروت الإهداء الشمعية',
-    subtitle: 'توزيعات حفلات وبالونات مخصصة بالاسم وتوصيل مجدول لأحياء مكة المكرمة',
-    imageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1920&q=85',
-    mobileImageUrl: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=900&q=85',
+    subtitle: 'توزيعات حفلات وبطاقات مخصصة بالاسم وتوصيل مجدول لأحياء مكة المكرمة',
+    imageUrl: '',
+    mobileImageUrl: '',
     altText: 'بالونات الهيليوم وتوزيعات المناسبات في مكة',
     linkType: 'category',
     linkValue: 'balloons-party',
-    buttonText: 'اكتشف البالونات والتوزيعات',
+    buttonText: 'اكتشف التوزيعات',
     isActive: true,
     order: 3,
     objectFit: 'cover',

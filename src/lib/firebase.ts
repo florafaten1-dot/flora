@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { 
   getFirestore, 
+  initializeFirestore,
   doc, 
   getDocFromServer, 
   collection, 
@@ -35,8 +36,19 @@ import {
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-/* CRITICAL: The app will break without specifying firestoreDatabaseId per skill */
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+/* CRITICAL: The app will break without specifying firestoreDatabaseId per skill.
+   We use experimentalForceLongPolling to prevent Cloud Firestore 10s backend reachability timeouts in iframe/proxy environments. */
+export const db = (() => {
+  try {
+    return initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+    }, firebaseConfig.firestoreDatabaseId);
+  } catch {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
+})();
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const storage = getStorage(app);
@@ -109,6 +121,7 @@ export async function testConnection() {
     }
   }
 }
+testConnection();
 
 // Bootstrapped admin email
 export const SUPER_ADMIN_EMAIL = "floraf.aten1@gmail.com";

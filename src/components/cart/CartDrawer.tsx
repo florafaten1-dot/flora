@@ -155,11 +155,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   key={item.id}
                   className="p-3 bg-[#FFFDFD] rounded-2xl border border-[#F8DDE6] flex gap-3 shadow-2xs"
                 >
-                  <img
-                    src={item.product.image}
-                    alt={item.product.name}
-                    className="w-20 h-20 rounded-xl object-cover border border-[#F8DDE6] shrink-0"
-                  />
+                  {item.product.image ? (
+                    <img
+                      src={item.product.image}
+                      alt={item.product.name}
+                      className="w-20 h-20 rounded-xl object-cover border border-[#F8DDE6] shrink-0"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-xl bg-pink-50 border border-[#F8DDE6] shrink-0 flex items-center justify-center text-[#C9A46A]">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                  )}
 
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
@@ -249,11 +255,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         className="min-w-[160px] max-w-[160px] bg-[#FFF9FA] border border-pink-100 rounded-xl p-2 flex flex-col justify-between shrink-0"
                       >
                         <div className="flex items-center gap-2 mb-1.5">
-                          <img 
-                            src={comp.image} 
-                            alt={comp.name} 
-                            className="w-9 h-9 rounded-lg object-cover border border-pink-100 shrink-0" 
-                          />
+                          {comp.image ? (
+                            <img 
+                              src={comp.image} 
+                              alt={comp.name} 
+                              className="w-9 h-9 rounded-lg object-cover border border-pink-100 shrink-0" 
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-pink-50 border border-pink-100 shrink-0 flex items-center justify-center text-[#C9A46A]">
+                              <Sparkles className="w-4 h-4" />
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <h6 className="text-[10px] font-bold text-[#2D141E] truncate">{comp.name}</h6>
                             <span className="text-[10px] font-black text-[#AD647D]">

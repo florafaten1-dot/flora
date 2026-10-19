@@ -43,7 +43,8 @@ import {
   Upload,
   Image as ImageIcon,
   Star,
-  MessageSquare
+  MessageSquare,
+  Flower2
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { 
@@ -94,12 +95,23 @@ export const AdminDashboard: React.FC = () => {
     updateAffiliate,
     processPayout,
     reviews,
-    deleteProductReview
+    deleteProductReview,
+    uploadProductImage,
+    uploadCategoryImage,
+    clearAllMockImages
   } = useStore();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'categories' | 'inventory' | 'coupons' | 'announcements' | 'banners' | 'reviews' | 'settings' | 'reports' | 'affiliates' | 'users'>('overview');
   const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
   const [announcementSaveSuccess, setAnnouncementSaveSuccess] = useState(false);
+
+  // Image Uploading & Mock Cleaning State
+  const productFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const categoryFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [isUploadingProductImage, setIsUploadingProductImage] = useState(false);
+  const [isUploadingCategoryImage, setIsUploadingCategoryImage] = useState(false);
+  const [isCleaningMockImages, setIsCleaningMockImages] = useState(false);
+  const [cleaningResultMsg, setCleaningResultMsg] = useState<string | null>(null);
 
   // Reviews management state
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
@@ -253,6 +265,51 @@ export const AdminDashboard: React.FC = () => {
       setLogoUploadError('حدث خطأ أثناء حذف الشعار');
     } finally {
       setLogoUploading(false);
+    }
+  };
+
+  // Product & Category Image Upload Handlers
+  const handleProductMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploadingProductImage(true);
+      const url = await uploadProductImage(file);
+      setEditingProduct(prev => prev ? { ...prev, image: url } : null);
+    } catch (err: any) {
+      alert('فشل رفع صورة المنتج: ' + (err?.message || 'خطأ غير معروف'));
+    } finally {
+      setIsUploadingProductImage(false);
+    }
+  };
+
+  const handleCategoryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploadingCategoryImage(true);
+      const url = await uploadCategoryImage(file);
+      setEditingCategory(prev => prev ? { ...prev, image: url } : null);
+    } catch (err: any) {
+      alert('فشل رفع صورة التصنيف: ' + (err?.message || 'خطأ غير معروف'));
+    } finally {
+      setIsUploadingCategoryImage(false);
+    }
+  };
+
+  const handleClearAllMockImages = async () => {
+    if (!confirm('هل ترغب بتنظيف كافة الصور الوهمية من جميع المنتجات والتصنيفات والبنرات بقاعدة البيانات الآن؟ ستصبح المنتجات جاهزة لرفع صورك الخاصة.')) {
+      return;
+    }
+    try {
+      setIsCleaningMockImages(true);
+      const res = await clearAllMockImages();
+      setCleaningResultMsg(`تم بنجاح تنظيف وحذف كافة الصور الوهمية من المتجر! (منتجات: ${res.productsCleaned}، تصنيفات: ${res.categoriesCleaned}، بنرات: ${res.bannersCleaned})`);
+      setTimeout(() => setCleaningResultMsg(null), 6000);
+    } catch (err: any) {
+      alert('حدث خطأ أثناء تنظيف الصور: ' + (err?.message || ''));
+    } finally {
+      setIsCleaningMockImages(false);
     }
   };
 
@@ -444,7 +501,8 @@ export const AdminDashboard: React.FC = () => {
                 category: categories[0]?.slug || 'pink-white-bouquets',
                 stock: 15,
                 flowerType: 'natural',
-                image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
+                image: '',
+                images: [],
                 featured: false
               });
               setIsProductModalOpen(true);
@@ -453,6 +511,16 @@ export const AdminDashboard: React.FC = () => {
           >
             <Plus className="w-4 h-4" />
             <span>إضافة منتج جديد</span>
+          </button>
+
+          <button
+            onClick={handleClearAllMockImages}
+            disabled={isCleaningMockImages}
+            title="حذف جميع الصور الوهمية من قاعدة البيانات لرفع صورك الخاصة"
+            className="py-2.5 px-3.5 bg-rose-600/90 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            {isCleaningMockImages ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            <span>{isCleaningMockImages ? 'جاري الحذف...' : 'حذف كل الصور الوهمية'}</span>
           </button>
 
           <button
@@ -465,6 +533,13 @@ export const AdminDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {cleaningResultMsg && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-fadeIn">
+          <span>{cleaningResultMsg}</span>
+          <button onClick={() => setCleaningResultMsg(null)} className="text-emerald-600 hover:text-emerald-900 font-bold">✕</button>
+        </div>
+      )}
 
       {/* Prominent Visual Low-Stock Alert Banner */}
       {showStockAlertBanner && allAlertProducts.length > 0 && (
@@ -1112,7 +1187,8 @@ export const AdminDashboard: React.FC = () => {
                   category: categories[0]?.slug || 'pink-white-bouquets',
                   stock: 12,
                   flowerType: 'natural',
-                  image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
+                  image: '',
+                  images: [],
                   featured: false
                 });
                 setIsProductModalOpen(true);
@@ -1128,8 +1204,15 @@ export const AdminDashboard: React.FC = () => {
             {products.map((p) => (
               <div key={p.id} className="bg-white rounded-3xl border border-[#F8DDE6] p-4 flex flex-col justify-between shadow-xs">
                 <div>
-                  <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
-                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                  <div className="relative aspect-square rounded-2xl overflow-hidden mb-3 bg-[#FFF9FA]">
+                    {p.image ? (
+                      <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-[#FFF0F4] text-[#AD647D] p-2 text-center">
+                        <Sparkles className="w-6 h-6 text-[#C9A46A] mb-1" />
+                        <span className="text-[10px] font-bold text-[#4A2030]">بانتظار الصورة</span>
+                      </div>
+                    )}
                     <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
                       {p.flowerType === 'natural' ? 'طبيعي' : 'صناعي'}
                     </span>
@@ -1190,7 +1273,7 @@ export const AdminDashboard: React.FC = () => {
                   name: '',
                   nameEn: '',
                   slug: '',
-                  image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=800&q=80',
+                  image: '',
                   description: '',
                   order: categories.length + 1
                 });
@@ -1206,7 +1289,13 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {categories.map((c) => (
               <div key={c.id} className="bg-white rounded-2xl border border-[#F8DDE6] p-4 flex items-center gap-3">
-                <img src={c.image} className="w-16 h-16 rounded-xl object-cover border border-[#F8DDE6]" />
+                {c.image ? (
+                  <img src={c.image} alt={c.name} className="w-16 h-16 rounded-xl object-cover border border-[#F8DDE6] shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-pink-50 border border-[#F8DDE6] flex items-center justify-center text-[#AD647D] shrink-0">
+                    <Flower2 className="w-6 h-6 text-[#C9A46A]" />
+                  </div>
+                )}
                 <div className="flex-1">
                   <h4 className="font-bold text-xs text-[#2D141E]">{c.name}</h4>
                   <span className="text-[10px] text-gray-400 font-mono">{c.slug}</span>
@@ -3076,13 +3165,47 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold mb-1">رابط الصورة الرئيسية</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold">صورة المنتج الرئيسية</label>
+                  <button
+                    type="button"
+                    onClick={() => productFileInputRef.current?.click()}
+                    disabled={isUploadingProductImage}
+                    className="text-xs font-bold text-[#AD647D] hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {isUploadingProductImage ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    <span>رفع صورة من جهازك</span>
+                  </button>
+                  <input
+                    type="file"
+                    ref={productFileInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProductMainImageUpload}
+                  />
+                </div>
                 <input
                   type="url"
+                  placeholder="https://... أو اضغط 'رفع صورة من جهازك' بالأعلى"
                   value={editingProduct.image || ''}
                   onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
                   className="w-full border border-[#F8DDE6] rounded-xl p-2.5 font-mono text-[11px]"
                 />
+                {editingProduct.image && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-[#F8DDE6] bg-pink-50">
+                      <img src={editingProduct.image} alt="معاينة" className="w-full h-full object-cover" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingProduct({ ...editingProduct, image: '' })}
+                      className="text-xs text-red-600 font-bold hover:underline flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>إزالة الصورة</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -3197,13 +3320,49 @@ export const AdminDashboard: React.FC = () => {
                 onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value })}
                 className="w-full border rounded-xl p-2.5"
               />
-              <input
-                type="url"
-                placeholder="رابط الصورة"
-                value={editingCategory.image || ''}
-                onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
-                className="w-full border rounded-xl p-2.5"
-              />
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold">صورة التصنيف</label>
+                  <button
+                    type="button"
+                    onClick={() => categoryFileInputRef.current?.click()}
+                    disabled={isUploadingCategoryImage}
+                    className="text-xs font-bold text-[#AD647D] hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {isUploadingCategoryImage ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    <span>رفع صورة من جهازك</span>
+                  </button>
+                  <input
+                    type="file"
+                    ref={categoryFileInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCategoryImageUpload}
+                  />
+                </div>
+                <input
+                  type="url"
+                  placeholder="https://... أو اضغط 'رفع صورة من جهازك' بالأعلى"
+                  value={editingCategory.image || ''}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
+                  className="w-full border rounded-xl p-2.5 font-mono text-[11px]"
+                />
+                {editingCategory.image && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-[#F8DDE6] bg-pink-50">
+                      <img src={editingCategory.image} alt="معاينة" className="w-full h-full object-cover" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategory({ ...editingCategory, image: '' })}
+                      className="text-xs text-red-600 font-bold hover:underline flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>إزالة الصورة</span>
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="px-3 py-1.5 border rounded-xl">إلغاء</button>
                 <button type="submit" className="px-4 py-1.5 bg-[#AD647D] text-white rounded-xl font-bold">حفظ</button>

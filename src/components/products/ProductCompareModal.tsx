@@ -149,11 +149,18 @@ export const ProductCompareModal: React.FC<ProductCompareModalProps> = ({
                             }
                           }}
                         >
-                          <img
-                            src={prod.image}
-                            alt={prod.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                          {prod.image ? (
+                            <img
+                              src={prod.image}
+                              alt={prod.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 to-[#FFF0F4] text-[#AD647D] p-2 text-center">
+                              <Sparkles className="w-6 h-6 text-[#C9A46A] mb-1" />
+                              <span className="text-[10px] font-bold text-[#4A2030]">بانتظار الصورة</span>
+                            </div>
+                          )}
                           {hasDiscount && (
                             <span className="absolute bottom-2 right-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                               خصم خاص
